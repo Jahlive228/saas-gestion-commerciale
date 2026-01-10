@@ -3,9 +3,8 @@ import "server-only";
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import type { JWTPayload, LoginResponse, Session } from '@/models/auth';
-import { env } from "process";
 
-const JWT_SECRET = new TextEncoder().encode(env.SESSION_SECRET);
+const JWT_SECRET = new TextEncoder().encode(process.env.SESSION_SECRET || '');
 
 const SESSION_COOKIE_NAME = 'legombopay-session';
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 jours

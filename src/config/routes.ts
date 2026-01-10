@@ -20,6 +20,27 @@ export const routes = {
     //Profile
     profile: '/profile',
   },
+
+  // Routes multi-app selon le cahier des charges
+  superadmin: {
+    home: '/superadmin',
+    tenants: '/superadmin/tenants',
+    stats: '/superadmin/stats',
+  },
+
+  admin: {
+    home: '/admin',
+    team: '/admin/team',
+    products: '/admin/products',
+    stock: '/admin/stock',
+    sales: '/admin/sales',
+    stats: '/admin/stats',
+  },
+
+  app: {
+    pos: '/app',
+    sales: '/app/sales',
+  },
 } as const;
 
 // Types pour l'autocomplétion TypeScript

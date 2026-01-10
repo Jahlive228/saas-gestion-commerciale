@@ -1,0 +1,50 @@
+services:
+  app:
+    container_name: saas_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password123@db:5432/saas_db
+      - REDIS_URL=redis://cache:6379
+      - SESSION_SECRET=${SESSION_SECRET}
+      - API_URL=http://localhost:3000/api
+    depends_on:
+      - db
+      - cache
+    networks:
+      - saas_network
+
+  db:
+    container_name: saas_postgres
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB=saas_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - saas_network
+
+  cache:
+    container_name: saas_redis
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - saas_network
+
+networks:
+  saas_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

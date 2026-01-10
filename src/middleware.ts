@@ -27,6 +27,8 @@ const privateRoutePrefixes = [
   '/home',
   '/admin',
   '/profile',
+  '/superadmin',
+  '/app',
 ];
 
 export async function middleware(request: NextRequest) {
