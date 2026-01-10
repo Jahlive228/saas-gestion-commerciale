@@ -1,7 +1,28 @@
+import 'dotenv/config';
 import { PrismaClient, Role, TenantStatus, ScaleUnit } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Vérifier que DATABASE_URL est défini
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is not set.');
+  console.error('Please check your .env file and ensure DATABASE_URL is defined.');
+  process.exit(1);
+}
+
+console.log('✅ DATABASE_URL loaded:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@'));
+
+// Créer le pool PostgreSQL et l'adapter
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({
+  adapter,
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+});
 
 async function main() {
   console.log('🌱 Démarrage du seed...');
@@ -264,4 +285,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });
