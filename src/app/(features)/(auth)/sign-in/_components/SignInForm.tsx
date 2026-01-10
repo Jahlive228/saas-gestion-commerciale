@@ -12,7 +12,7 @@ import Label from "@/components/form/Label";
 import Checkbox from "@/components/form/input/Checkbox";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import { routes } from "@/config/routes";
-import { loginAction } from '@/app/(features)/(auth)/sign-in/_service/action';
+import { loginWithPrismaAction } from '@/app/(features)/(auth)/sign-in/_service/prisma-action';
 import { loginSchema, type LoginFormData } from "../_service/schemas";
 
 export default function SignInForm() {
@@ -37,16 +37,26 @@ export default function SignInForm() {
     setIsSubmitting(true);
     
     try {
-      const result = await loginAction(data);
+      console.log('[SignInForm] Tentative de connexion pour:', data.email);
+      const result = await loginWithPrismaAction(data);
+      
+      console.log('[SignInForm] Résultat de la connexion:', result);
       
       if (result.success) {
-        toast.success(`Bienvenue ${result?.data?.content?.user?.first_name} ${result?.data?.content?.user?.last_name}!`);
-        router.push(routes.dashboard.home);
+        const userName = result.data.user.first_name || result.data.user.email;
+        toast.success(`Bienvenue ${userName}!`);
+        // Utiliser window.location pour forcer un rechargement complet et mettre à jour la session
+        setTimeout(() => {
+          window.location.href = routes.dashboard.home;
+        }, 500);
       } else {
-        toast.error(result.error);
+        console.error('[SignInForm] Erreur de connexion:', result.error);
+        toast.error(result.error || 'Erreur de connexion');
       }
-    } catch {
-      toast.error('Erreur de connexion');
+    } catch (error: any) {
+      console.error('[SignInForm] Exception lors de la connexion:', error);
+      console.error('[SignInForm] Stack:', error?.stack);
+      toast.error(error?.message || 'Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setIsSubmitting(false);
     }

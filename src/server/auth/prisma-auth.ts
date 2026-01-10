@@ -23,23 +23,33 @@ export async function authenticateUser(
   password: string
 ): Promise<{ success: true; user: AuthUser } | { success: false; error: string }> {
   try {
+    console.log('[authenticateUser] Recherche de l\'utilisateur:', email);
+    
     const user = await prisma.user.findUnique({
       where: { email },
       include: { tenant: true },
     });
 
     if (!user) {
+      console.log('[authenticateUser] Utilisateur non trouvé:', email);
       return { success: false, error: 'Email ou mot de passe incorrect' };
     }
 
+    console.log('[authenticateUser] Utilisateur trouvé:', user.email, 'is_active:', user.is_active);
+
     if (!user.is_active) {
+      console.log('[authenticateUser] Compte désactivé:', email);
       return { success: false, error: 'Compte désactivé' };
     }
 
+    console.log('[authenticateUser] Vérification du mot de passe...');
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
+      console.log('[authenticateUser] Mot de passe incorrect pour:', email);
       return { success: false, error: 'Email ou mot de passe incorrect' };
     }
+
+    console.log('[authenticateUser] Mot de passe valide, mise à jour de last_login...');
 
     // Mettre à jour last_login
     await prisma.user.update({

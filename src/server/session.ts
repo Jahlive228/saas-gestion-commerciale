@@ -6,7 +6,7 @@ import type { JWTPayload, LoginResponse, Session } from '@/models/auth';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.SESSION_SECRET || '');
 
-const SESSION_COOKIE_NAME = 'legombopay-session';
+const SESSION_COOKIE_NAME = 'saas-session';
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 jours
 
 export class SessionManager {
@@ -16,6 +16,9 @@ export class SessionManager {
   private static decodeJWTPayload(token: string): JWTPayload | null {
     try {
       const payload = token.split('.')[1];
+      if (!payload) {
+        return null;
+      }
       const decoded = Buffer.from(payload, 'base64').toString('utf-8');
       return JSON.parse(decoded);
     } catch (error) {
