@@ -82,10 +82,34 @@ export async function middleware(request: NextRequest) {
         if (session?.jwtPayload?.role_name === 'GERANT' || session?.jwtPayload?.role_name === 'VENDEUR') {
           return NextResponse.redirect(new URL(routes.pos.home, request.url));
         }
+        if (session?.jwtPayload?.role_name === 'MAGASINIER') {
+          return NextResponse.redirect(new URL(routes.admin.stock, request.url));
+        }
       } catch (error) {
         // En cas d'erreur, rediriger vers le dashboard par défaut
       }
       return NextResponse.redirect(new URL(routes.dashboard.home, request.url));
+    }
+
+    // Si l'utilisateur est authentifié et accède à une route privée,
+    // ne pas rediriger s'il est déjà sur la bonne route selon son rôle
+    if (isAuthenticated && isPrivateRoute) {
+      try {
+        const session = await SessionManager.getSession();
+        const role = session?.jwtPayload?.role_name;
+        
+        // Si un MAGASINIER accède à /admin/stock, le laisser passer
+        if (role === 'MAGASINIER' && pathname === routes.admin.stock) {
+          return NextResponse.next();
+        }
+        
+        // Si un MAGASINIER accède à /admin/products, le laisser passer
+        if (role === 'MAGASINIER' && pathname === routes.admin.products) {
+          return NextResponse.next();
+        }
+      } catch (error) {
+        // En cas d'erreur, continuer
+      }
     }
 
     // Si l'utilisateur n'est pas authentifié et tente d'accéder à une route privée

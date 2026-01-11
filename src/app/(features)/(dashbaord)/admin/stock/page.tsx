@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import {
@@ -9,30 +10,28 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { getStockAction, type StockItem } from "./_services/actions";
-
+import StockTransactionModal from "./_components/StockTransactionModal";
+import StockHistory from "./_components/StockHistory";
+import { TransactionType } from "@prisma/client";
 export default function StockPage() {
-  const [stockItems, setStockItems] = useState<StockItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"inventory" | "movements">(
     "inventory"
   );
+  const [selectedProduct, setSelectedProduct] = useState<{
+    id: string;
+    name: string;
+    stock: number;
+  } | null>(null);
+  const [transactionType, setTransactionType] = useState<TransactionType | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const loadStock = async () => {
-    setIsLoading(true);
-    setError(null);
-    const result = await getStockAction();
-    if (result.success && result.data) {
-      setStockItems(result.data);
-    } else {
-      setError(result.error || "Erreur lors du chargement");
-    }
-    setIsLoading(false);
-  };
+  const { data: stockResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ["stock"],
+    queryFn: () => getStockAction(),
+    staleTime: 30 * 1000, // 30 secondes
+  });
 
-  useEffect(() => {
-    loadStock();
-  }, []);
+  const stockItems = stockResponse?.success ? stockResponse.data || [] : [];
 
   const lowStockItems = stockItems.filter(
     (item) => item.stock_qty <= item.min_stock && item.stock_qty > 0
@@ -41,6 +40,25 @@ export default function StockPage() {
   const healthyStockItems = stockItems.filter(
     (item) => item.stock_qty > item.min_stock
   );
+
+  const handleOpenModal = (
+    product: StockItem,
+    type: TransactionType
+  ) => {
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      stock: product.stock_qty,
+    });
+    setTransactionType(type);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    setTransactionType(null);
+  };
 
   const columns = [
     {
@@ -116,27 +134,39 @@ export default function StockPage() {
       },
     },
     {
-      key: "tenant",
-      title: "Commerce",
-      render: (_: unknown, record: Record<string, unknown>) => {
-        const item = record as unknown as StockItem;
-        return (
-          <span className="text-sm text-gray-600">{item.tenant?.name}</span>
-        );
-      },
-    },
-    {
       key: "actions",
       title: "Actions",
       align: "center" as const,
-      render: () => {
+      render: (_: unknown, record: Record<string, unknown>) => {
+        const item = record as unknown as StockItem;
         return (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="outline" size="sm" className="text-success-600">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-success-600"
+              onClick={() => handleOpenModal(item, TransactionType.RESTOCK)}
+              title="Réapprovisionner"
+            >
               <ArrowUpIcon className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" className="text-error-600">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-warning-600"
+              onClick={() => handleOpenModal(item, TransactionType.ADJUSTMENT)}
+              title="Ajuster"
+            >
               <ArrowDownIcon className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-blue-600"
+              onClick={() => handleOpenModal(item, TransactionType.RETURN)}
+              title="Retour client"
+            >
+              <ArrowDownIcon className="w-4 h-4 rotate-180" />
             </Button>
           </div>
         );
@@ -154,10 +184,6 @@ export default function StockPage() {
             Suivez et gérez les niveaux de stock de tous les produits
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <ArrowUpIcon className="w-5 h-5" />
-          Réapprovisionner
-        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -223,13 +249,15 @@ export default function StockPage() {
         </nav>
       </div>
 
-      {/* Table */}
+      {/* Content */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div className="p-6">
           {error ? (
             <div className="text-center py-8">
-              <p className="text-error-600 mb-4">{error}</p>
-              <Button variant="outline" onClick={loadStock}>
+              <p className="text-error-600 mb-4">
+                {typeof error === "string" ? error : "Erreur lors du chargement"}
+              </p>
+              <Button variant="outline" onClick={() => refetch()}>
                 Réessayer
               </Button>
             </div>
@@ -241,13 +269,22 @@ export default function StockPage() {
               emptyMessage="Aucun produit en stock"
             />
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              <p>Historique des mouvements de stock</p>
-              <p className="text-sm mt-2">Fonctionnalité en cours de développement</p>
-            </div>
+            <StockHistory />
           )}
         </div>
       </div>
+
+      {/* Transaction Modal */}
+      {selectedProduct && transactionType && (
+        <StockTransactionModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          productId={selectedProduct.id}
+          productName={selectedProduct.name}
+          currentStock={selectedProduct.stock}
+          transactionType={transactionType}
+        />
+      )}
     </div>
   );
 }

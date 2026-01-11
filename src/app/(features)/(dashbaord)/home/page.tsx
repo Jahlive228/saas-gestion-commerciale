@@ -23,6 +23,11 @@ export default async function Dashboard() {
     redirect(routes.pos.home);
   }
 
+  // Rediriger le Magasinier vers la gestion des stocks
+  if (role === Role.MAGASINIER) {
+    redirect(routes.admin.stock);
+  }
+
   // Afficher le dashboard selon le rôle
   return (
     <div className="space-y-6">
