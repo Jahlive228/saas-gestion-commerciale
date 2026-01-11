@@ -146,6 +146,10 @@ export const ROUTE_PERMISSIONS: Record<string, PermissionCode[]> = {
   '/pos': [PERMISSION_CODES.SALES_CREATE],
   '/pos/sales': [PERMISSION_CODES.SALES_VIEW_OWN, PERMISSION_CODES.SALES_VIEW],
 
+  // Warehouse routes (Entrepôt - Magasinier)
+  '/warehouse': [PERMISSION_CODES.STOCK_VIEW],
+  '/catalog': [PERMISSION_CODES.PRODUCTS_VIEW],
+
   // Dashboard routes
   '/admin/utilisateurs': [PERMISSION_CODES.USERS_VIEW],
   '/admin/roles': [PERMISSION_CODES.ROLES_VIEW],

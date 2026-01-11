@@ -42,6 +42,11 @@ export const routes = {
     home: '/pos',
     sales: '/pos/sales',
   },
+
+  warehouse: {
+    home: '/warehouse',
+    products: '/catalog',
+  },
 } as const;
 
 // Types pour l'autocomplétion TypeScript
@@ -80,9 +85,13 @@ export const getPageTitle = (pathname: string): string => {
     // POS
     '/pos': 'Point de Vente',
     '/pos/sales': 'Mes Ventes',
+    
+    // Warehouse (MAGASINIER)
+    '/warehouse': 'Gestion des Stocks',
+    '/catalog': 'Catalogue Produits',
   };
 
-  return titleMap[pathname] || 'GomboPay Admin';
+  return titleMap[pathname] || 'Sass';
 };
 
 

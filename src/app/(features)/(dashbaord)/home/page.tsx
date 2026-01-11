@@ -23,9 +23,9 @@ export default async function Dashboard() {
     redirect(routes.pos.home);
   }
 
-  // Rediriger le Magasinier vers la gestion des stocks
+  // Rediriger le Magasinier vers l'entrepôt
   if (role === Role.MAGASINIER) {
-    redirect(routes.admin.stock);
+    redirect(routes.warehouse.home);
   }
 
   // Afficher le dashboard selon le rôle
@@ -75,7 +75,7 @@ export default async function Dashboard() {
           )}
           {(role === Role.DIRECTEUR || role === Role.MAGASINIER) && (
             <a
-              href={routes.admin.stock}
+              href={role === Role.MAGASINIER ? routes.warehouse.home : routes.admin.stock}
               className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-brand-300 hover:bg-brand-50/50 transition-colors text-center"
             >
               <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mb-2">

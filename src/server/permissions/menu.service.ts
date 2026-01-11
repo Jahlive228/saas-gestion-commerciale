@@ -182,14 +182,14 @@ export class MenuService {
     if (role === 'MAGASINIER') {
       roleMenu.push(
         {
-          name: 'Stocks',
-          path: '/admin/stock',
+          name: 'Entrepôt',
+          path: '/warehouse',
           icon: 'WarehouseIcon',
           permission: 'stock.view' as PermissionCode,
         },
         {
-          name: 'Produits',
-          path: '/admin/products',
+          name: 'Catalogue',
+          path: '/catalog',
           icon: 'PackageIcon',
           permission: 'products.view' as PermissionCode,
         }

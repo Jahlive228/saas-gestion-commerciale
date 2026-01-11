@@ -34,6 +34,8 @@ const privateRoutePrefixes = [
   '/profile',
   '/superadmin',
   '/pos',
+  '/warehouse',
+  '/catalog',
 ];
 
 export async function middleware(request: NextRequest) {
@@ -83,7 +85,7 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(new URL(routes.pos.home, request.url));
         }
         if (session?.jwtPayload?.role_name === 'MAGASINIER') {
-          return NextResponse.redirect(new URL(routes.admin.stock, request.url));
+          return NextResponse.redirect(new URL(routes.warehouse.home, request.url));
         }
       } catch (error) {
         // En cas d'erreur, rediriger vers le dashboard par défaut
@@ -98,13 +100,8 @@ export async function middleware(request: NextRequest) {
         const session = await SessionManager.getSession();
         const role = session?.jwtPayload?.role_name;
         
-        // Si un MAGASINIER accède à /admin/stock, le laisser passer
-        if (role === 'MAGASINIER' && pathname === routes.admin.stock) {
-          return NextResponse.next();
-        }
-        
-        // Si un MAGASINIER accède à /admin/products, le laisser passer
-        if (role === 'MAGASINIER' && pathname === routes.admin.products) {
+        // Si un MAGASINIER accède à /warehouse ou /catalog, le laisser passer
+        if (role === 'MAGASINIER' && (pathname === routes.warehouse.home || pathname === routes.warehouse.products)) {
           return NextResponse.next();
         }
       } catch (error) {
