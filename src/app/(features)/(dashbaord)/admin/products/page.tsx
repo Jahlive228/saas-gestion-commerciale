@@ -14,13 +14,19 @@ export default function ProductsPage() {
   const loadProducts = async () => {
     setIsLoading(true);
     setError(null);
-    const result = await getProductsAction();
-    if (result.success && result.data) {
-      setProducts(result.data);
-    } else {
-      setError(result.error || "Erreur lors du chargement");
+    try {
+      const result = await getProductsAction();
+      if (result && result.success && result.data) {
+        setProducts(result.data);
+      } else {
+        setError(result?.error || "Erreur lors du chargement");
+      }
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des produits:', error);
+      setError(error.message || "Erreur lors du chargement");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { SessionManager } from "@/server/session";
 import { requireAuth } from "@/server/auth/require-auth";
 import { requirePermission } from "@/server/permissions/require-permission";
 import { PERMISSION_CODES } from "@/constants/permissions-saas";
@@ -32,7 +33,13 @@ export async function getProductsAction(): Promise<{
   error?: string;
 }> {
   try {
-    const session = await requireAuth();
+    // Vérifier d'abord si la session existe
+    const session = await SessionManager.getSession();
+    if (!session) {
+      return { success: false, error: 'Non autorisé' };
+    }
+
+    await requireAuth();
     await requirePermission(PERMISSION_CODES.PRODUCTS_VIEW);
 
     const role = session.jwtPayload.role_name as Role;

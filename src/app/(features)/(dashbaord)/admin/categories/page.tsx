@@ -14,13 +14,19 @@ export default function CategoriesPage() {
   const loadCategories = async () => {
     setIsLoading(true);
     setError(null);
-    const result = await getCategoriesAction();
-    if (result.success && result.data) {
-      setCategories(result.data);
-    } else {
-      setError(result.error || "Erreur lors du chargement");
+    try {
+      const result = await getCategoriesAction();
+      if (result && result.success && result.data) {
+        setCategories(result.data);
+      } else {
+        setError(result?.error || "Erreur lors du chargement");
+      }
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des catégories:', error);
+      setError(error.message || "Erreur lors du chargement");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {

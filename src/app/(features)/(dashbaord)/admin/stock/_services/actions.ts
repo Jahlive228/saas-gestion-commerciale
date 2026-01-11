@@ -34,7 +34,13 @@ export async function getStockAction(): Promise<{
   error?: string;
 }> {
   try {
-    const session = await requireAuth();
+    // Vérifier d'abord si la session existe
+    const session = await SessionManager.getSession();
+    if (!session) {
+      return { success: false, error: 'Non autorisé' };
+    }
+
+    await requireAuth();
     await requirePermission(PERMISSION_CODES.STOCK_VIEW);
 
     const role = session.jwtPayload.role_name as Role;
