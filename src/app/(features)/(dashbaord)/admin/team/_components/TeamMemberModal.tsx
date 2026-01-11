@@ -18,15 +18,15 @@ const createMemberSchema = z.object({
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   first_name: z.string().min(1, "Le prénom est requis"),
   last_name: z.string().min(1, "Le nom est requis"),
-  phone: z.string().optional(),
-  role_id: z.string().min(1, "Le rôle est requis"),
+  role_id: z.enum(['GERANT', 'VENDEUR', 'MAGASINIER'], {
+    errorMap: () => ({ message: "Le rôle est requis" }),
+  }),
 });
 
 const updateMemberSchema = z.object({
   first_name: z.string().min(1, "Le prénom est requis"),
   last_name: z.string().min(1, "Le nom est requis"),
-  phone: z.string().optional(),
-  role_id: z.string().optional(),
+  role_id: z.enum(['GERANT', 'VENDEUR', 'MAGASINIER']).optional(),
 });
 
 type CreateMemberFormData = z.infer<typeof createMemberSchema>;
@@ -65,8 +65,7 @@ export default function TeamMemberModal({
         updateForm.reset({
           first_name: member.first_name || "",
           last_name: member.last_name || "",
-          phone: member.phone || "",
-          role_id: member.role.id,
+          role_id: member.role,
         });
       } else {
         createForm.reset({
@@ -74,8 +73,7 @@ export default function TeamMemberModal({
           password: "",
           first_name: "",
           last_name: "",
-          phone: "",
-          role_id: roles?.[0]?.id || "",
+          role_id: (roles?.[0]?.id as 'GERANT' | 'VENDEUR' | 'MAGASINIER') || 'VENDEUR',
         });
       }
     }
@@ -167,16 +165,6 @@ export default function TeamMemberModal({
         </div>
 
         <div>
-          <Label htmlFor="phone">Téléphone</Label>
-          <Input
-            id="phone"
-            type="tel"
-            {...form.register("phone")}
-            error={form.formState.errors.phone?.message}
-          />
-        </div>
-
-        <div>
           <Label htmlFor="role_id">Rôle *</Label>
           <select
             id="role_id"
@@ -189,7 +177,7 @@ export default function TeamMemberModal({
             ) : (
               roles?.map((role) => (
                 <option key={role.id} value={role.id}>
-                  {role.name === 'GERANT' ? 'Gérant' : role.name === 'VENDEUR' ? 'Vendeur' : 'Magasinier'}
+                  {role.id === 'GERANT' ? 'Gérant' : role.id === 'VENDEUR' ? 'Vendeur' : 'Magasinier'}
                 </option>
               ))
             )}

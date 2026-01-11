@@ -18,12 +18,8 @@ export interface TeamMember {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  phone: string | null;
   is_active: boolean;
-  role: {
-    id: string;
-    name: string;
-  };
+  role: Role;
   created_at: Date;
   last_login: Date | null;
 }
@@ -81,9 +77,7 @@ export async function getTeamMembersAction(filters: TeamFilters = {}): Promise<A
       tenant_id: tenantId,
       // Exclure le SUPERADMIN et le DIRECTEUR actuel
       role: {
-        name: {
-          in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-        },
+        in: ['GERANT', 'VENDEUR', 'MAGASINIER'] as Role[],
       },
     };
 
@@ -96,20 +90,12 @@ export async function getTeamMembersAction(filters: TeamFilters = {}): Promise<A
     }
 
     if (role) {
-      where.role = { name: role };
+      where.role = role;
     }
 
     const [members, total] = await Promise.all([
       prisma.user.findMany({
         where,
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
         orderBy: { created_at: 'desc' },
         skip,
         take: limit,
@@ -122,12 +108,8 @@ export async function getTeamMembersAction(filters: TeamFilters = {}): Promise<A
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
-      phone: user.phone,
       is_active: user.is_active,
-      role: {
-        id: user.role.id,
-        name: user.role.name,
-      },
+      role: user.role,
       created_at: user.created_at,
       last_login: user.last_login,
     }));
@@ -172,9 +154,7 @@ export async function getTeamStatsAction(): Promise<ActionResult<TeamStats>> {
     const where = {
       tenant_id: tenantId,
       role: {
-        name: {
-          in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-        },
+        in: ['GERANT', 'VENDEUR', 'MAGASINIER'] as Role[],
       },
     };
 
@@ -182,20 +162,11 @@ export async function getTeamStatsAction(): Promise<ActionResult<TeamStats>> {
       prisma.user.count({ where }),
       prisma.user.count({ where: { ...where, is_active: true } }),
       prisma.user.groupBy({
-        by: ['role_id'],
+        by: ['role'],
         where,
         _count: true,
       }),
     ]);
-
-    // Récupérer les noms des rôles
-    const roleIds = byRole.map((r) => r.role_id);
-    const roles = await prisma.role.findMany({
-      where: { id: { in: roleIds } },
-      select: { id: true, name: true },
-    });
-
-    const roleMap = new Map(roles.map((r) => [r.id, r.name]));
 
     const stats: TeamStats = {
       total,
@@ -208,7 +179,7 @@ export async function getTeamStatsAction(): Promise<ActionResult<TeamStats>> {
     };
 
     byRole.forEach((group) => {
-      const roleName = roleMap.get(group.role_id);
+      const roleName = group.role;
       if (roleName && roleName in stats.byRole) {
         stats.byRole[roleName as keyof typeof stats.byRole] = group._count;
       }
@@ -229,7 +200,6 @@ export async function createTeamMemberAction(data: {
   password: string;
   first_name: string;
   last_name: string;
-  phone?: string;
   role_id: string;
 }): Promise<ActionResult<TeamMember>> {
   try {
@@ -257,12 +227,9 @@ export async function createTeamMemberAction(data: {
     }
 
     // Vérifier que le rôle est valide (GERANT, VENDEUR, ou MAGASINIER)
-    const role = await prisma.role.findUnique({
-      where: { id: data.role_id },
-    });
-
-    if (!role || !['GERANT', 'VENDEUR', 'MAGASINIER'].includes(role.name)) {
-      return { success: false, error: 'Rôle invalide' };
+    const validRoles: Role[] = ['GERANT', 'VENDEUR', 'MAGASINIER'];
+    if (!validRoles.includes(data.role_id as Role)) {
+      return { success: false, error: 'Rôle invalide. Les rôles valides sont: GERANT, VENDEUR, MAGASINIER' };
     }
 
     // Hasher le mot de passe
@@ -272,21 +239,12 @@ export async function createTeamMemberAction(data: {
     const user = await prisma.user.create({
       data: {
         email: data.email,
-        password: hashedPassword,
+        password_hash: hashedPassword,
         first_name: data.first_name,
         last_name: data.last_name,
-        phone: data.phone || null,
         tenant_id: tenantId,
-        role_id: data.role_id,
+        role: data.role_id as Role,
         is_active: true,
-      },
-      include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
     });
 
@@ -299,12 +257,8 @@ export async function createTeamMemberAction(data: {
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
-        phone: user.phone,
         is_active: user.is_active,
-        role: {
-          id: user.role.id,
-          name: user.role.name,
-        },
+        role: user.role,
         created_at: user.created_at,
         last_login: user.last_login,
       },
@@ -323,7 +277,6 @@ export async function updateTeamMemberAction(
   data: {
     first_name?: string;
     last_name?: string;
-    phone?: string;
     role_id?: string;
   }
 ): Promise<ActionResult<TeamMember>> {
@@ -348,9 +301,7 @@ export async function updateTeamMemberAction(
         id: memberId,
         tenant_id: tenantId,
         role: {
-          name: {
-            in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-          },
+          in: ['GERANT', 'VENDEUR', 'MAGASINIER'] as Role[],
         },
       },
     });
@@ -361,12 +312,9 @@ export async function updateTeamMemberAction(
 
     // Si un nouveau rôle est fourni, vérifier qu'il est valide
     if (data.role_id) {
-      const role = await prisma.role.findUnique({
-        where: { id: data.role_id },
-      });
-
-      if (!role || !['GERANT', 'VENDEUR', 'MAGASINIER'].includes(role.name)) {
-        return { success: false, error: 'Rôle invalide' };
+      const validRoles: Role[] = ['GERANT', 'VENDEUR', 'MAGASINIER'];
+      if (!validRoles.includes(data.role_id as Role)) {
+        return { success: false, error: 'Rôle invalide. Les rôles valides sont: GERANT, VENDEUR, MAGASINIER' };
       }
     }
 
@@ -376,16 +324,7 @@ export async function updateTeamMemberAction(
       data: {
         ...(data.first_name !== undefined && { first_name: data.first_name }),
         ...(data.last_name !== undefined && { last_name: data.last_name }),
-        ...(data.phone !== undefined && { phone: data.phone || null }),
-        ...(data.role_id && { role_id: data.role_id }),
-      },
-      include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        ...(data.role_id && { role: data.role_id as Role }),
       },
     });
 
@@ -398,12 +337,8 @@ export async function updateTeamMemberAction(
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
-        phone: user.phone,
         is_active: user.is_active,
-        role: {
-          id: user.role.id,
-          name: user.role.name,
-        },
+        role: user.role,
         created_at: user.created_at,
         last_login: user.last_login,
       },
@@ -442,9 +377,7 @@ export async function toggleTeamMemberStatusAction(
         id: memberId,
         tenant_id: tenantId,
         role: {
-          name: {
-            in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-          },
+          in: ['GERANT', 'VENDEUR', 'MAGASINIER'] as Role[],
         },
       },
     });
@@ -492,9 +425,7 @@ export async function deleteTeamMemberAction(memberId: string): Promise<ActionRe
         id: memberId,
         tenant_id: tenantId,
         role: {
-          name: {
-            in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-          },
+          in: ['GERANT', 'VENDEUR', 'MAGASINIER'] as Role[],
         },
       },
     });
@@ -518,6 +449,7 @@ export async function deleteTeamMemberAction(memberId: string): Promise<ActionRe
 
 /**
  * Récupère les rôles disponibles pour l'équipe (GERANT, VENDEUR, MAGASINIER)
+ * Note: Les rôles sont des enums, donc on retourne une liste statique
  */
 export async function getTeamRolesAction(): Promise<ActionResult<Array<{ id: string; name: string; description: string | null }>>> {
   try {
@@ -529,19 +461,24 @@ export async function getTeamRolesAction(): Promise<ActionResult<Array<{ id: str
 
     await requireAdmin();
 
-    const roles = await prisma.role.findMany({
-      where: {
-        name: {
-          in: ['GERANT', 'VENDEUR', 'MAGASINIER'],
-        },
+    // Les rôles sont des enums, on retourne une liste statique
+    const roles = [
+      {
+        id: 'GERANT',
+        name: 'GERANT',
+        description: 'Gérant du commerce - peut créer des ventes et gérer l\'équipe',
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
+      {
+        id: 'VENDEUR',
+        name: 'VENDEUR',
+        description: 'Vendeur - peut créer des ventes et voir les produits',
       },
-      orderBy: { name: 'asc' },
-    });
+      {
+        id: 'MAGASINIER',
+        name: 'MAGASINIER',
+        description: 'Magasinier - peut gérer les stocks et les produits',
+      },
+    ];
 
     return { success: true, data: roles };
   } catch (error: any) {

@@ -66,8 +66,8 @@ export function getTeamColumns({
           MAGASINIER: 'Magasinier',
         };
 
-        const colorClass = roleColors[member.role.name] || 'bg-gray-100 text-gray-800';
-        const roleText = roleLabels[member.role.name] || member.role.name;
+        const colorClass = roleColors[member.role] || 'bg-gray-100 text-gray-800';
+        const roleText = roleLabels[member.role] || member.role;
 
         return (
           <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${colorClass}`}>
