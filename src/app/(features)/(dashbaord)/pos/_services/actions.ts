@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { SessionManager } from '@/server/session';
 import { requireAuth } from '@/server/auth/require-auth';
-import { requirePermission } from '@/server/permissions/require-permission';
+import { requirePermission, requireAnyPermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { SalesService } from '@/server/services/sales.service';
 import { revalidatePath } from 'next/cache';
@@ -172,7 +172,9 @@ export async function createSaleAction(items: Array<{ product_id: string; quanti
 }
 
 /**
- * Récupère les ventes de l'utilisateur (GERANT voit toutes les ventes de son tenant)
+ * Récupère les ventes de l'utilisateur
+ * - GERANT : voit toutes les ventes de son tenant
+ * - VENDEUR : voit uniquement ses propres ventes (filtrées par seller_id)
  */
 export async function getMySalesAction(
   page: number = 1,
@@ -186,7 +188,11 @@ export async function getMySalesAction(
     }
 
     await requireAuth();
-    await requirePermission(PERMISSION_CODES.SALES_VIEW);
+    // GERANT a SALES_VIEW, VENDEUR a SALES_VIEW_OWN
+    await requireAnyPermission([
+      PERMISSION_CODES.SALES_VIEW,
+      PERMISSION_CODES.SALES_VIEW_OWN,
+    ]);
 
     const tenantId = session.jwtPayload.tenant_id;
     if (!tenantId) {
@@ -259,7 +265,11 @@ export async function getSaleDetailAction(saleId: string): Promise<ActionResult<
     }
 
     await requireAuth();
-    await requirePermission(PERMISSION_CODES.SALES_VIEW);
+    // GERANT a SALES_VIEW, VENDEUR a SALES_VIEW_OWN
+    await requireAnyPermission([
+      PERMISSION_CODES.SALES_VIEW,
+      PERMISSION_CODES.SALES_VIEW_OWN,
+    ]);
 
     const tenantId = session.jwtPayload.tenant_id;
     if (!tenantId) {
@@ -272,6 +282,7 @@ export async function getSaleDetailAction(saleId: string): Promise<ActionResult<
       where: {
         id: saleId,
         tenant_id: tenantId,
+        // VENDEUR ne peut voir que ses propres ventes
         ...(role === Role.VENDEUR ? { seller_id: session.user.id } : {}),
       },
       include: {
