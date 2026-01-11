@@ -5,6 +5,8 @@ import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getProductsAction, type Product } from "./_services/actions";
+import { CanAccess } from "@/components/permissions/CanAccess";
+import { PERMISSION_CODES } from "@/constants/permissions-saas";
 
 export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -128,10 +130,12 @@ export default function CatalogPage() {
             Consultez les produits disponibles
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Nouveau Produit
-        </Button>
+        <CanAccess permission={PERMISSION_CODES.PRODUCTS_CREATE}>
+          <Button className="flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Nouveau Produit
+          </Button>
+        </CanAccess>
       </div>
 
       {/* Stats Cards */}
@@ -174,7 +178,7 @@ export default function CatalogPage() {
             </div>
           ) : (
             <DataTable
-              data={products}
+              data={products as unknown as Record<string, unknown>[]}
               columns={columns}
               loading={isLoading}
               emptyMessage="Aucun produit trouvé"
