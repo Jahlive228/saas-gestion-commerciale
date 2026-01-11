@@ -134,21 +134,21 @@ export default function TenantsPage() {
     switch (status) {
       case TenantStatus.ACTIVE:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success-50 text-success-700">
-            <span className="w-1.5 h-1.5 bg-success-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
+            <span className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-pulse" />
             Actif
           </span>
         );
       case TenantStatus.SUSPENDED:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-error-50 text-error-700">
-            <span className="w-1.5 h-1.5 bg-error-500 rounded-full" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
+            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
             Suspendu
           </span>
         );
       case TenantStatus.INACTIVE:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
             Inactif
           </span>
@@ -171,7 +171,7 @@ export default function TenantsPage() {
             setEditingTenant(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors"
         >
           <PlusIcon className="w-5 h-5" />
           Nouveau Commerce
@@ -189,7 +189,7 @@ export default function TenantsPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
           />
         </div>
         <select
@@ -198,7 +198,7 @@ export default function TenantsPage() {
             setStatusFilter(e.target.value as TenantStatus | '');
             setPage(1);
           }}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
         >
           <option value="">Tous les statuts</option>
           <option value={TenantStatus.ACTIVE}>Actifs</option>
@@ -211,7 +211,7 @@ export default function TenantsPage() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-theme-xs overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
           </div>
         ) : tenants.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
@@ -221,27 +221,27 @@ export default function TenantsPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-brand-50/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Commerce
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-center text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Utilisateurs
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-center text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Produits
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-center text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Ventes
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-center text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-right text-xs font-semibold text-brand-900 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -280,7 +280,7 @@ export default function TenantsPage() {
                               setEditingTenant(tenant);
                               setIsModalOpen(true);
                             }}
-                            className="p-2 text-gray-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                            className="p-2 text-gray-500 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
                             title="Modifier"
                           >
                             <PencilIcon className="w-4 h-4" />
@@ -289,8 +289,8 @@ export default function TenantsPage() {
                             onClick={() => handleToggleStatus(tenant)}
                             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                               tenant.status === TenantStatus.ACTIVE
-                                ? 'text-warning-700 bg-warning-50 hover:bg-warning-100'
-                                : 'text-success-700 bg-success-50 hover:bg-success-100'
+                                ? 'text-orange-700 bg-orange-50 hover:bg-orange-100'
+                                : 'text-brand-700 bg-brand-50 hover:bg-brand-100'
                             }`}
                           >
                             {tenant.status === TenantStatus.ACTIVE ? 'Suspendre' : 'Activer'}

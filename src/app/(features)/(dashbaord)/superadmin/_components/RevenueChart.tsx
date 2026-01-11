@@ -58,15 +58,15 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
             Total: {formatCurrency(totalRevenue)} • {totalSales} ventes
           </p>
         </div>
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+        <div className="flex gap-1 p-1 bg-brand-50 rounded-lg">
           {(['week', 'month', 'year'] as Period[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 period === p
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-brand-700 hover:text-brand-900 hover:bg-brand-100'
               }`}
             >
               {p === 'week' ? '7 jours' : p === 'month' ? 'Ce mois' : 'Cette année'}
@@ -77,7 +77,7 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
 
       {isLoading ? (
         <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : data.length === 0 ? (
         <div className="h-64 flex items-center justify-center text-gray-500">
@@ -103,7 +103,7 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
                   </div>
                   {/* Bar */}
                   <div
-                    className="w-full max-w-[40px] bg-brand-500 rounded-t-md transition-all duration-300 hover:bg-brand-600 cursor-pointer"
+                    className="w-full max-w-[40px] bg-brand-500 rounded-t-md transition-all duration-300 hover:bg-brand-700 cursor-pointer"
                     style={{ height: `${Math.max(height, 4)}%` }}
                   />
                 </div>

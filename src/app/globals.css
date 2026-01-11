@@ -39,20 +39,21 @@
   --color-black: #101828;
 
 
-  /* https://www.color-hex.com/color/00e87c */
+  /* Palette Violet - Couleur principale de la marque */
+  /* https://www.color-hex.com/color/7c3aed */
   
-  --color-brand-25: #f0fef8;
-  --color-brand-50: #e6fcf1;
-  --color-brand-100: #cff9e3;
-  --color-brand-200: #a3f2c7;
-  --color-brand-300: #6ee8a5;
-  --color-brand-400: #34d882;
-  --color-brand-500: #00e87c;
-  --color-brand-600: #00c569;
-  --color-brand-700: #009d54;
-  --color-brand-800: #007d45;
-  --color-brand-900: #00663a;
-  --color-brand-950: #003a21;
+  --color-brand-25: #faf5ff;
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-brand-950: #2e1065;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;

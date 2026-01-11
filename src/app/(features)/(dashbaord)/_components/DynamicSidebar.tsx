@@ -26,7 +26,7 @@ const iconMap: Record<string, React.ReactNode> = {
   WarehouseIcon: <GridIcon />, // Fallback
   ShoppingCartIcon: <GridIcon />, // Fallback
   ReceiptIcon: <GridIcon />, // Fallback
-  SettingsIcon: <GroupIcon />, // Fallback
+  SettingIcon: <GridIcon />, // Fallback
   ShieldIcon: <GroupIcon />, // Fallback
 };
 

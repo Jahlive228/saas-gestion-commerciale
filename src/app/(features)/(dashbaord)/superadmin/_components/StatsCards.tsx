@@ -65,30 +65,30 @@ export default function StatsCards({ stats }: StatsCardsProps) {
         value={formatCurrency(stats.totalRevenue)}
         change={stats.revenueGrowth}
         icon={<DollarLineIcon />}
-        iconBgColor="bg-brand-50"
+        iconBgColor="bg-brand-100"
         iconColor="text-brand-600"
       />
       <StatCard
         title="Commerces actifs"
         value={`${stats.activeTenants} / ${stats.totalTenants}`}
         icon={<BoxIcon />}
-        iconBgColor="bg-blue-light-50"
-        iconColor="text-blue-light-600"
+        iconBgColor="bg-brand-50"
+        iconColor="text-brand-500"
       />
       <StatCard
         title="Utilisateurs actifs"
         value={stats.totalUsers}
         icon={<GroupIcon />}
-        iconBgColor="bg-orange-50"
-        iconColor="text-orange-600"
+        iconBgColor="bg-brand-100/50"
+        iconColor="text-brand-700"
       />
       <StatCard
         title="Ventes ce mois"
         value={stats.totalSales}
         change={stats.salesGrowth}
         icon={<BoxIcon />}
-        iconBgColor="bg-success-50"
-        iconColor="text-success-600"
+        iconBgColor="bg-brand-200/50"
+        iconColor="text-brand-800"
       />
     </div>
   );

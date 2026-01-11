@@ -39,12 +39,12 @@ export default async function SuperadminDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success-50 text-success-700 rounded-full">
-            <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-700 rounded-full font-medium">
+            <span className="w-2 h-2 bg-brand-500 rounded-full animate-pulse" />
             {stats.activeTenants} commerces actifs
           </span>
           {stats.suspendedTenants > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-warning-50 text-warning-700 rounded-full">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 rounded-full font-medium">
               {stats.suspendedTenants} suspendus
             </span>
           )}
