@@ -37,8 +37,8 @@ export class SalesService {
     }
 
     // Vérifier que l'utilisateur peut créer une vente
-    if (user.role !== Role.VENDEUR && user.role !== Role.SUPERADMIN) {
-      return { success: false, error: 'Seuls les vendeurs peuvent créer des ventes' };
+    if (user.role !== Role.VENDEUR && user.role !== Role.GERANT && user.role !== Role.SUPERADMIN) {
+      return { success: false, error: 'Seuls les vendeurs et gérants peuvent créer des ventes' };
     }
 
     try {

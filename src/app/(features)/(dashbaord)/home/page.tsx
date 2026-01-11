@@ -18,6 +18,11 @@ export default async function Dashboard() {
     redirect(routes.admin.home);
   }
 
+  // Rediriger le Gérant et le Vendeur vers le POS
+  if (role === Role.GERANT || role === Role.VENDEUR) {
+    redirect(routes.app.pos);
+  }
+
   // Afficher le dashboard selon le rôle
   return (
     <div className="space-y-6">

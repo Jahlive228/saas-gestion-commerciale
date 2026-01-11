@@ -79,6 +79,9 @@ export async function middleware(request: NextRequest) {
         if (session?.jwtPayload?.role_name === 'DIRECTEUR') {
           return NextResponse.redirect(new URL(routes.admin.home, request.url));
         }
+        if (session?.jwtPayload?.role_name === 'GERANT' || session?.jwtPayload?.role_name === 'VENDEUR') {
+          return NextResponse.redirect(new URL(routes.app.pos, request.url));
+        }
       } catch (error) {
         // En cas d'erreur, rediriger vers le dashboard par défaut
       }

@@ -67,6 +67,8 @@ import ShieldIcon from "./shield.svg";
 import DashboardIcon from "./dashboard.svg";
 import CrownIcon from "./crown.svg";
 import TagIcon from "./tag.svg";
+import SearchIcon from "./search.svg";
+import XIcon from "./x.svg";
 
 export {
   DownloadIcon,
@@ -137,4 +139,6 @@ export {
   DashboardIcon,
   CrownIcon,
   TagIcon,
+  SearchIcon,
+  XIcon,
 };
