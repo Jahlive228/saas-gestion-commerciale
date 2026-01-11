@@ -41,6 +41,7 @@ COPY . .
 # ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install Prisma Client and build
+# Note: DATABASE_URL n'est pas nécessaire pour le build, seulement pour le runtime
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
@@ -48,7 +49,7 @@ RUN \
     corepack enable pnpm && \
     corepack prepare pnpm@latest --activate && \
     pnpm exec prisma generate && \
-    pnpm run build; \
+    DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" pnpm run build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -77,9 +78,23 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma files for migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+# Copy source files needed for seed scripts (constants)
+COPY --from=builder --chown=nextjs:nodejs /app/src/constants ./src/constants
+# Copy package.json and necessary node_modules for migrations and seeding
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+# Copy prisma CLI and all its dependencies (recursive)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+# Copy tsx and ALL its dependencies recursively
+RUN mkdir -p /tmp/tsx-deps && chown nextjs:nodejs /tmp/tsx-deps
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tsx ./node_modules/tsx
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modules/esbuild
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
 
 USER nextjs
 
@@ -89,9 +104,12 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-# Create entrypoint script to run migrations before starting the app
+# Create entrypoint script to run migrations and seed permissions before starting the app
+# Note: We'll use a simpler approach - just run migrations, seed will be done manually if needed
 RUN echo '#!/bin/sh' > /tmp/entrypoint.sh && \
-    echo 'npx prisma migrate deploy || true' >> /tmp/entrypoint.sh && \
+    echo 'echo "Running Prisma migrations..."' >> /tmp/entrypoint.sh && \
+    echo 'node node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma || true' >> /tmp/entrypoint.sh && \
+    echo 'echo "Migrations completed. Starting app..."' >> /tmp/entrypoint.sh && \
     echo 'exec node server.js' >> /tmp/entrypoint.sh && \
     chmod +x /tmp/entrypoint.sh
 

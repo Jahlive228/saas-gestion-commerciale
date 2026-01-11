@@ -34,8 +34,10 @@ async function main() {
   await prisma.stockTransaction.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.rolePermission.deleteMany();
   await prisma.user.deleteMany();
   await prisma.tenant.deleteMany();
+  // Note: On ne supprime pas les permissions pour éviter de les recréer à chaque seed
 
   // Hash du mot de passe par défaut
   const defaultPassword = await bcrypt.hash('password123', 10);
@@ -276,6 +278,7 @@ async function main() {
   console.log(`   - 3 Catégories créées`);
   console.log(`   - 6 Produits créés`);
   console.log('\n🔐 Tous les utilisateurs ont le mot de passe: password123');
+  console.log('\n💡 Pour peupler les permissions, exécutez: pnpm run seed:permissions');
 }
 
 main()

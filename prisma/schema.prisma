@@ -40,59 +40,59 @@ enum SaleStatus {
 }
 
 enum TransactionType {
-  SALE      // Vente
-  RESTOCK   // Réapprovisionnement
+  SALE // Vente
+  RESTOCK // Réapprovisionnement
   ADJUSTMENT // Ajustement manuel (perte, vol, etc.)
-  RETURN    // Retour client
+  RETURN // Retour client
 }
 
 // ==================== CORE MODELS ====================
 
 model Tenant {
-  id          String       @id @default(cuid())
-  name        String
-  slug        String       @unique // Pour les sous-domaines ou URLs
-  email       String?
-  phone       String?
-  status      TenantStatus @default(ACTIVE)
-  created_at  DateTime     @default(now())
-  updated_at  DateTime     @updatedAt
+  id         String       @id @default(cuid())
+  name       String
+  slug       String       @unique // Pour les sous-domaines ou URLs
+  email      String?
+  phone      String?
+  status     TenantStatus @default(ACTIVE)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
 
   // Relations
-  users       User[]
-  products    Product[]
-  sales       Sale[]
-  categories  Category[]
+  users      User[]
+  products   Product[]
+  sales      Sale[]
+  categories Category[]
 
   @@index([status])
   @@index([slug])
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password_hash   String
-  first_name      String?
-  last_name       String?
-  role            Role      @default(VENDEUR)
-  is_active       Boolean   @default(true)
-  
+  id            String  @id @default(cuid())
+  email         String  @unique
+  password_hash String
+  first_name    String?
+  last_name     String?
+  role          Role    @default(VENDEUR)
+  is_active     Boolean @default(true)
+
   // 2FA Security
   two_factor_enabled Boolean @default(false)
   two_factor_secret  String? // Secret TOTP
 
   // Tenant Relation (Optional for Superadmin)
-  tenant_id       String?
-  tenant          Tenant?   @relation(fields: [tenant_id], references: [id])
+  tenant_id String?
+  tenant    Tenant? @relation(fields: [tenant_id], references: [id])
 
   // Auditing
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
-  last_login      DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  last_login DateTime?
 
   // Relations
-  sales           Sale[]    // Ventes effectuées par ce vendeur
-  stock_updates   StockTransaction[] // Mouvements de stock effectués
+  sales         Sale[] // Ventes effectuées par ce vendeur
+  stock_updates StockTransaction[] // Mouvements de stock effectués
 
   @@index([tenant_id])
   @@index([role])
@@ -100,40 +100,73 @@ model User {
   @@index([is_active])
 }
 
+// ==================== PERMISSIONS & ROLES ====================
+
+model Permission {
+  id          String  @id @default(cuid())
+  code        String  @unique // Ex: 'products.create', 'sales.view'
+  name        String
+  description String?
+  module      String? // Ex: 'products', 'sales', 'stock', 'team'
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  role_permissions RolePermission[]
+
+  @@index([code])
+  @@index([module])
+}
+
+model RolePermission {
+  id            String     @id @default(cuid())
+  role          Role // Le rôle concerné
+  permission_id String
+  permission    Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([role, permission_id])
+  @@index([role])
+  @@index([permission_id])
+}
+
 // ==================== CATALOG & STOCK ====================
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String
-  tenant_id   String
-  tenant      Tenant   @relation(fields: [tenant_id], references: [id])
-  products    Product[]
-  
+  id        String    @id @default(cuid())
+  name      String
+  tenant_id String
+  tenant    Tenant    @relation(fields: [tenant_id], references: [id])
+  products  Product[]
+
   @@unique([tenant_id, name]) // Nom unique par boutique
 }
 
 model Product {
   id          String    @id @default(cuid())
   name        String
-  sku         String?   // Code barre ou ref interne
+  sku         String? // Code barre ou ref interne
   description String?
   price       Decimal   @db.Decimal(10, 2)
   cost_price  Decimal?  @db.Decimal(10, 2) // Prix d'achat pour calcul de marge
   stock_qty   Int       @default(0)
   min_stock   Int       @default(5) // Seuil d'alerte
   unit        ScaleUnit @default(PIECE)
-  
-  tenant_id   String
-  tenant      Tenant    @relation(fields: [tenant_id], references: [id])
-  
+
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
   category_id String?
   category    Category? @relation(fields: [category_id], references: [id])
 
   transactions StockTransaction[]
   sale_items   SaleItem[]
 
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@unique([tenant_id, sku]) // SKU unique par boutique
   @@index([tenant_id])
@@ -142,39 +175,39 @@ model Product {
 }
 
 model StockTransaction {
-  id          String          @id @default(cuid())
-  product_id  String
-  product     Product         @relation(fields: [product_id], references: [id])
-  
-  user_id     String
-  user        User            @relation(fields: [user_id], references: [id])
+  id         String  @id @default(cuid())
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id])
 
-  type        TransactionType
-  quantity    Int             // Positif pour ajout, Négatif pour retrait
-  reason      String?         // Ex: "Livraison fournisseur", "Vente #1234"
-  
-  created_at  DateTime        @default(now())
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
+
+  type     TransactionType
+  quantity Int // Positif pour ajout, Négatif pour retrait
+  reason   String? // Ex: "Livraison fournisseur", "Vente #1234"
+
+  created_at DateTime @default(now())
 }
 
 // ==================== SALES (POS) ====================
 
 model Sale {
-  id          String      @id @default(cuid())
-  reference   String      @unique // Ex: ORD-2023-0001
-  
-  tenant_id   String
-  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
-  
-  seller_id   String
-  seller      User        @relation(fields: [seller_id], references: [id])
+  id        String @id @default(cuid())
+  reference String @unique // Ex: ORD-2023-0001
+
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  seller_id String
+  seller    User   @relation(fields: [seller_id], references: [id])
 
   total_amount Decimal    @db.Decimal(10, 2)
   status       SaleStatus @default(COMPLETED)
-  
-  items       SaleItem[]
 
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  items SaleItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([tenant_id])
   @@index([seller_id])
@@ -183,14 +216,14 @@ model Sale {
 }
 
 model SaleItem {
-  id          String   @id @default(cuid())
-  sale_id     String
-  sale        Sale     @relation(fields: [sale_id], references: [id])
-  
-  product_id  String
-  product     Product  @relation(fields: [product_id], references: [id])
-  
+  id      String @id @default(cuid())
+  sale_id String
+  sale    Sale   @relation(fields: [sale_id], references: [id])
+
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id])
+
   quantity    Int
-  unit_price  Decimal  @db.Decimal(10, 2) // Prix au moment de la vente (snapshot)
-  total_price Decimal  @db.Decimal(10, 2)
+  unit_price  Decimal @db.Decimal(10, 2) // Prix au moment de la vente (snapshot)
+  total_price Decimal @db.Decimal(10, 2)
 }

@@ -3,7 +3,7 @@
 import { useSidebar } from "@/context/SidebarContext";
 
 import React from "react";
-import AppSidebar from "./_components/AppSidebar";
+import DynamicSidebar from "./_components/DynamicSidebar";
 import Backdrop from "./_components/Backdrop";
 import AppHeader from "./_components/AppHeader";
 
@@ -29,7 +29,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen xl:flex">
       {/* Sidebar and Backdrop */}
-      <AppSidebar />
+      <DynamicSidebar />
       <Backdrop />
       {/* Main Content Area */}
       <div

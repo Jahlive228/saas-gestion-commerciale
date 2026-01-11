@@ -7,35 +7,58 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
-// Vérifier que DATABASE_URL est défini
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    '❌ DATABASE_URL environment variable is not set.\n' +
-    'Please check your .env file or Docker environment variables.\n' +
-    'Expected format: postgresql://user:password@host:port/database'
-  );
+// Fonction pour obtenir le pool PostgreSQL (lazy initialization)
+function getPool(): Pool {
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      '❌ DATABASE_URL environment variable is not set.\n' +
+      'Please check your .env file or Docker environment variables.\n' +
+      'Expected format: postgresql://user:password@host:port/database'
+    );
+  }
+
+  if (!globalForPrisma.pool) {
+    globalForPrisma.pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+  }
+
+  return globalForPrisma.pool;
 }
 
-// Créer le pool PostgreSQL et l'adapter (singleton)
-const pool =
-  globalForPrisma.pool ??
-  new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.pool = pool;
+// Fonction pour obtenir l'adapter Prisma (lazy initialization)
+function getAdapter() {
+  const pool = getPool();
+  return new PrismaPg(pool);
 }
 
-const adapter = new PrismaPg(pool);
+// Créer le client Prisma (lazy initialization)
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    // Vérifier DATABASE_URL seulement quand on crée le client
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        '❌ DATABASE_URL environment variable is not set.\n' +
+        'Please check your .env file or Docker environment variables.\n' +
+        'Expected format: postgresql://user:password@host:port/database'
+      );
+    }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+    const adapter = getAdapter();
+    globalForPrisma.prisma = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+  }
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+  return globalForPrisma.prisma;
 }
+
+// Export du client Prisma avec lazy initialization
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
