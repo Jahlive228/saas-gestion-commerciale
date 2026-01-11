@@ -43,17 +43,18 @@ export default function UserDropdown() {
     setIsLoggingOut(true);
     
     try {
-      const result = await logoutAction();
+      // Rediriger immédiatement pour éviter les erreurs de chargement de données
+      router.push(routes.auth.signin);
       
-      if (result.success) {
-        toast.success('Déconnexion réussie');
-        router.push(routes.auth.signin);
-      }
+      // Détruire la session en arrière-plan
+      await logoutAction();
+      
+      toast.success('Déconnexion réussie');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
-      toast.error('Erreur lors de la déconnexion');
-      // En cas d'erreur, rediriger manuellement
-      router.push(routes.auth.signin);
+      // En cas d'erreur, la redirection a déjà été effectuée
+      // Forcer une navigation complète pour s'assurer que tout est nettoyé
+      window.location.href = routes.auth.signin;
     } finally {
       setIsLoggingOut(false);
     }

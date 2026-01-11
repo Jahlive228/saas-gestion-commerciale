@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { requireSuperAdmin } from '@/server/auth/require-auth';
+import { SessionManager } from '@/server/session';
 import { TenantStatus, SaleStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import type { GlobalStats, TenantWithStats, TenantRevenueData, ChartDataPoint, CreateTenantFormData, UpdateTenantFormData } from './types';
@@ -15,7 +16,11 @@ type ActionResult<T = void> =
  */
 export async function getGlobalStatsAction(): Promise<ActionResult<GlobalStats>> {
   try {
-    await requireSuperAdmin();
+    // Vérifier d'abord si la session existe pour éviter les erreurs de redirection
+    const session = await SessionManager.getSession();
+    if (!session || !session.jwtPayload.is_superadmin) {
+      return { success: false, error: 'Non autorisé' };
+    }
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -100,7 +105,11 @@ export async function getGlobalStatsAction(): Promise<ActionResult<GlobalStats>>
  */
 export async function getTenantRevenuesAction(): Promise<ActionResult<TenantRevenueData[]>> {
   try {
-    await requireSuperAdmin();
+    // Vérifier d'abord si la session existe pour éviter les erreurs de redirection
+    const session = await SessionManager.getSession();
+    if (!session || !session.jwtPayload.is_superadmin) {
+      return { success: false, error: 'Non autorisé' };
+    }
 
     const startOfMonth = new Date(new Date().setDate(1));
 
@@ -150,7 +159,11 @@ export async function getRevenueChartDataAction(
   period: 'week' | 'month' | 'year' = 'month'
 ): Promise<ActionResult<ChartDataPoint[]>> {
   try {
-    await requireSuperAdmin();
+    // Vérifier d'abord si la session existe pour éviter les erreurs de redirection
+    const session = await SessionManager.getSession();
+    if (!session || !session.jwtPayload.is_superadmin) {
+      return { success: false, error: 'Non autorisé' };
+    }
 
     const now = new Date();
     let startDate: Date;
