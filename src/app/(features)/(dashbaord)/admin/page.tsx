@@ -54,12 +54,12 @@ export default async function AdminDashboardPage() {
       <StatsCards stats={stats} />
 
       {/* Charts and Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RevenueChart initialData={chartData} />
+      <div className="grid  gap-6">
+      <div>
+          <QuickActions />
         </div>
         <div>
-          <QuickActions />
+          <RevenueChart initialData={chartData} />
         </div>
       </div>
     </div>

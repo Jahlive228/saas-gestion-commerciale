@@ -35,7 +35,7 @@ export default function QuickActions() {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-theme-xs">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
-      <div className="space-y-3">
+      <div className="flex flex-row gap-8 items-center">
         <QuickAction
           href={routes.admin.team}
           icon={<GroupIcon />}

@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import Stats from '../utilisateurs/_components/Stats';
-import AdminsTable from '../utilisateurs/_components/AdminsTable';
+import TeamStats from './_components/TeamStats';
+import TeamTable from './_components/TeamTable';
 
 export default function TeamPage() {
   const handleRefresh = () => {
@@ -21,9 +21,9 @@ export default function TeamPage() {
         </p>
       </div>
 
-      <Stats />
+      <TeamStats />
       
-      <AdminsTable onRefresh={handleRefresh} />
+      <TeamTable onRefresh={handleRefresh} />
     </div>
   );
 }
