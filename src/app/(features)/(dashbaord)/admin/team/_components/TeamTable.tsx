@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Button from '@/components/ui/button/Button';
-import DataTable from '@/components/common/DataTable';
+import DataTable, { type Column } from '@/components/common/DataTable';
 import { useModal } from '@/hooks/useModal';
 import { useTeamMembers, useDeleteTeamMember, useToggleTeamMemberStatus } from '../_services/queries';
 import { getTeamColumns } from '../_services/columns';
@@ -135,6 +135,32 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
           </Button>
         </div>
 
+        {/* Search Input */}
+        <div className="mb-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Rechercher un membre..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto"></div>
@@ -145,15 +171,40 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
             Erreur lors du chargement des membres
           </div>
         ) : (
-          <DataTable
-            data={members}
-            columns={columns}
-            searchPlaceholder="Rechercher un membre..."
-            onSearch={handleSearch}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <>
+            <DataTable
+              data={members as unknown as Record<string, unknown>[]}
+              columns={columns as unknown as Column<Record<string, unknown>>[]}
+              loading={isLoading}
+              emptyMessage="Aucun membre trouvé"
+            />
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex justify-center">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Précédent
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} sur {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

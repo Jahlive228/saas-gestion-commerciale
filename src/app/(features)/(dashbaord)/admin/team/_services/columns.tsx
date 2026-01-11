@@ -42,15 +42,6 @@ export function getTeamColumns({
       ),
     },
     {
-      key: 'contact',
-      title: 'Contact',
-      render: (_: unknown, member: TeamMember) => (
-        <div className="text-sm text-gray-900">
-          {member.phone || 'N/A'}
-        </div>
-      ),
-    },
-    {
       key: 'role',
       title: 'Rôle',
       render: (_: unknown, member: TeamMember) => {
