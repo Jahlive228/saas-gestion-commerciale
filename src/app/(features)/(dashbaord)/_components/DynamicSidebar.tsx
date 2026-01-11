@@ -11,23 +11,50 @@ import {
   HorizontaLDots,
   GroupIcon,
   UserIcon,
+  BuildingIcon,
+  ChartIcon,
+  PackageIcon,
+  WarehouseIcon,
+  ShoppingCartIcon,
+  ReceiptIcon,
+  SettingsIcon,
+  ShieldIcon,
+  DashboardIcon,
+  CrownIcon,
+  LockIcon,
+  FolderIcon,
+  TagIcon,
 } from "@/icons/index";
 import { getUserMenuAction } from "../_services/menu.action";
 import type { MenuItem } from "@/server/permissions/menu.service";
 
 // Mapping des icônes
 const iconMap: Record<string, React.ReactNode> = {
-  GridIcon: <GridIcon />,
+  // Dashboard
+  GridIcon: <DashboardIcon />,
+  DashboardIcon: <DashboardIcon />,
+  
+  // Superadmin
+  CrownIcon: <CrownIcon />,
+  BuildingIcon: <BuildingIcon />,
+  ChartIcon: <ChartIcon />,
+  
+  // Produits et catégories
+  PackageIcon: <PackageIcon />,
+  FolderIcon: <FolderIcon />,
+  TagIcon: <TagIcon />,
+  
+  // Stock et ventes
+  WarehouseIcon: <WarehouseIcon />,
+  ShoppingCartIcon: <ShoppingCartIcon />,
+  ReceiptIcon: <ReceiptIcon />,
+  
+  // Administration
+  SettingsIcon: <SettingsIcon />,
   GroupIcon: <GroupIcon />,
   UserIcon: <UserIcon />,
-  BuildingIcon: <GroupIcon />, // Fallback
-  ChartIcon: <GridIcon />, // Fallback
-  PackageIcon: <GridIcon />, // Fallback
-  WarehouseIcon: <GridIcon />, // Fallback
-  ShoppingCartIcon: <GridIcon />, // Fallback
-  ReceiptIcon: <GridIcon />, // Fallback
-  SettingIcon: <GridIcon />, // Fallback
-  ShieldIcon: <GroupIcon />, // Fallback
+  ShieldIcon: <ShieldIcon />,
+  LockIcon: <LockIcon />,
 };
 
 const DynamicSidebar: React.FC = () => {

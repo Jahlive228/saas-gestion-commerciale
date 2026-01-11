@@ -55,6 +55,19 @@ import MoreDotIcon from "./more-dot.svg";
 import BellIcon from "./bell.svg";
 import ProfileAvatar from "./profile-avatar.svg";
 
+// Nouvelles icônes pour le menu
+import BuildingIcon from "./building.svg";
+import ChartIcon from "./chart.svg";
+import PackageIcon from "./package.svg";
+import WarehouseIcon from "./warehouse.svg";
+import ShoppingCartIcon from "./shopping-cart.svg";
+import ReceiptIcon from "./receipt.svg";
+import SettingsIcon from "./settings.svg";
+import ShieldIcon from "./shield.svg";
+import DashboardIcon from "./dashboard.svg";
+import CrownIcon from "./crown.svg";
+import TagIcon from "./tag.svg";
+
 export {
   DownloadIcon,
   BellIcon,
@@ -111,5 +124,17 @@ export {
   HorizontaLDots,
   ChevronUpIcon,
   ChatIcon,
-  ProfileAvatar
+  ProfileAvatar,
+  // Nouvelles icônes
+  BuildingIcon,
+  ChartIcon,
+  PackageIcon,
+  WarehouseIcon,
+  ShoppingCartIcon,
+  ReceiptIcon,
+  SettingsIcon,
+  ShieldIcon,
+  DashboardIcon,
+  CrownIcon,
+  TagIcon,
 };

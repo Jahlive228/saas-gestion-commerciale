@@ -31,7 +31,7 @@ export class MenuService {
       {
         name: 'Dashboard',
         path: '/home',
-        icon: 'GridIcon',
+        icon: 'DashboardIcon',
       },
     ];
 
@@ -44,7 +44,7 @@ export class MenuService {
       roleMenu.push({
         name: 'Dashboard Superadmin',
         path: '/superadmin',
-        icon: 'GridIcon',
+        icon: 'CrownIcon',
         permission: 'stats.view_global' as PermissionCode,
       });
       
@@ -80,7 +80,7 @@ export class MenuService {
         roleMenu.push({
           name: 'Catégories',
           path: '/admin/categories',
-          icon: 'FolderIcon',
+          icon: 'TagIcon',
           permission: 'categories.view' as PermissionCode,
         });
       }
@@ -100,7 +100,7 @@ export class MenuService {
         roleMenu.push({
           name: 'Ventes',
           path: '/admin/sales',
-          icon: 'ShoppingCartIcon',
+          icon: 'ReceiptIcon',
           permission: 'sales.view' as PermissionCode,
         });
       }
