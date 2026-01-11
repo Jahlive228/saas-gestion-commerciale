@@ -4,6 +4,8 @@ import React from 'react';
 import TeamStats from './_components/TeamStats';
 import TeamTable from './_components/TeamTable';
 
+
+
 export default function TeamPage() {
   const handleRefresh = () => {
     // Cette fonction sera appelée quand les données doivent être rafraîchies

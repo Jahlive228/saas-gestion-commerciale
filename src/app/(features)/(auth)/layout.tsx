@@ -2,6 +2,11 @@ import GridShape from "@/components/common/GridShape";
 import React from "react";
 import AuthIllustration from "./_components/AuthIllustration";
 
+export const metadata = {
+  title: "Saas - Application de gestion de commerce",
+  description: "Application de gestion de commerce",
+};
+
 export default function AuthLayout({
   children,
 }: {

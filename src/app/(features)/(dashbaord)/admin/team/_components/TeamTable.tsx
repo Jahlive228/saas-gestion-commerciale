@@ -9,6 +9,7 @@ import { getTeamColumns } from '../_services/columns';
 import type { TeamMember } from '../_services/types';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import TeamMemberModal from './TeamMemberModal';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 
 interface TeamTableProps {
   onRefresh?: () => void;
@@ -29,6 +30,12 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
     isOpen: isDeleteModalOpen, 
     openModal: openDeleteModal, 
     closeModal: closeDeleteModal 
+  } = useModal();
+
+  const { 
+    isOpen: isToggleStatusModalOpen, 
+    openModal: openToggleStatusModal, 
+    closeModal: closeToggleStatusModal 
   } = useModal();
 
   // TanStack Query hooks
@@ -93,13 +100,23 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
   };
 
   // Handler pour activer/désactiver un membre
-  const handleToggleStatus = async (member: TeamMember) => {
+  const handleToggleStatus = (member: TeamMember) => {
+    setSelectedMember(member);
+    openToggleStatusModal();
+  };
+
+  // Confirmer le changement de statut
+  const confirmToggleStatus = async () => {
+    if (!selectedMember) return;
+
     try {
       const result = await toggleStatusMutation.mutateAsync({
-        memberId: member.id,
-        isActive: !member.is_active,
+        memberId: selectedMember.id,
+        isActive: !selectedMember.is_active,
       });
       if (result.success) {
+        closeToggleStatusModal();
+        setSelectedMember(null);
         refetch();
         if (onRefresh) onRefresh();
       }
@@ -228,6 +245,17 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
         title="Supprimer le membre"
         message={`Êtes-vous sûr de vouloir supprimer ${selectedMember?.first_name} ${selectedMember?.last_name} ? Cette action est irréversible.`}
         isDeleting={deleteMemberMutation.isPending}
+      />
+
+      <ConfirmationModal
+        isOpen={isToggleStatusModalOpen}
+        onClose={closeToggleStatusModal}
+        onConfirm={confirmToggleStatus}
+        title={selectedMember?.is_active ? "Désactiver le membre" : "Activer le membre"}
+        message={`Êtes-vous sûr de vouloir ${selectedMember?.is_active ? 'désactiver' : 'activer'} ${selectedMember?.first_name} ${selectedMember?.last_name} ?`}
+        confirmText={selectedMember?.is_active ? "Désactiver" : "Activer"}
+        variant="warning"
+        isLoading={toggleStatusMutation.isPending}
       />
     </div>
   );

@@ -7,6 +7,7 @@ import { getAdminColumns } from '../_services/columns';
 import type { Admin } from '../_services/types';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import AdminModal from './AdminModal';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 
 interface AdminsTableProps {
   onRefresh?: () => void;
@@ -27,6 +28,12 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
     isOpen: isDeleteModalOpen, 
     openModal: openDeleteModal, 
     closeModal: closeDeleteModal 
+  } = useModal();
+
+  const { 
+    isOpen: isToggleStatusModalOpen, 
+    openModal: openToggleStatusModal, 
+    closeModal: closeToggleStatusModal 
   } = useModal();
 
   // TanStack Query hooks
@@ -89,15 +96,24 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
   };
 
   // Toggle du statut actif/inactif
-  const handleToggleStatus = async (admin: Admin) => {
+  const handleToggleStatus = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    openToggleStatusModal();
+  };
+
+  // Confirmer le changement de statut
+  const confirmToggleStatus = async () => {
+    if (!selectedAdmin) return;
+
     try {
       await toggleStatusMutation.mutateAsync({
-        adminId: admin.id,
-        isActive: !admin.is_active,
+        adminId: selectedAdmin.id,
+        isActive: !selectedAdmin.is_active,
       });
+      closeToggleStatusModal();
+      setSelectedAdmin(null);
       onRefresh?.();
     } catch (error) {
-      // L'erreur est déjà gérée dans le hook
       console.error('Erreur lors de la modification du statut:', error);
     }
   };
@@ -205,6 +221,18 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
         onConfirm={confirmDeleteAdmin}
         isLoading={deleteAdminMutation.isPending}
         message={`Êtes-vous sûr de vouloir supprimer l'administrateur "${selectedAdmin?.first_name} ${selectedAdmin?.last_name}" ? Cette action est irréversible.`}
+      />
+
+      {/* Modal de confirmation pour toggle status */}
+      <ConfirmationModal
+        isOpen={isToggleStatusModalOpen}
+        onClose={closeToggleStatusModal}
+        onConfirm={confirmToggleStatus}
+        title={selectedAdmin?.is_active ? "Désactiver l'administrateur" : "Activer l'administrateur"}
+        message={`Êtes-vous sûr de vouloir ${selectedAdmin?.is_active ? 'désactiver' : 'activer'} l'administrateur "${selectedAdmin?.first_name} ${selectedAdmin?.last_name}" ?`}
+        confirmText={selectedAdmin?.is_active ? "Désactiver" : "Activer"}
+        variant="warning"
+        isLoading={toggleStatusMutation.isPending}
       />
     </>
   );

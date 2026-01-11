@@ -4,6 +4,11 @@ import React from 'react';
 import Stats from './_components/Stats';
 import AdminsTable from './_components/AdminsTable';
 
+export const metadata = {
+  title: "Saas - Application de gestion de commerce | Utilisateurs Admin",
+  description: "Page de gestion des utilisateurs de Saas - Application de gestion de commerce",
+};
+
 export default function UtilisateursAdminPage() {
   const handleRefresh = () => {
     // Cette fonction sera appelée quand les données doivent être rafraîchies

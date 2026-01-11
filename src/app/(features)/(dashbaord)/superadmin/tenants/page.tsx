@@ -14,6 +14,7 @@ import {
 } from '../_services/actions';
 import type { TenantWithStats, CreateTenantFormData, UpdateTenantFormData } from '../_services/types';
 import TenantModal from '../_components/TenantModal';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { toast } from 'react-hot-toast';
 
 export default function TenantsPage() {
@@ -32,6 +33,11 @@ export default function TenantsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<TenantWithStats | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Confirmation modals state
+  const [isToggleStatusModalOpen, setIsToggleStatusModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<TenantWithStats | null>(null);
 
   const loadTenants = useCallback(async () => {
     setIsLoading(true);
@@ -96,34 +102,48 @@ export default function TenantsPage() {
     setIsSubmitting(false);
   };
 
-  const handleToggleStatus = async (tenant: TenantWithStats) => {
-    const action = tenant.status === TenantStatus.ACTIVE 
+  const handleToggleStatus = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsToggleStatusModalOpen(true);
+  };
+
+  const confirmToggleStatus = async () => {
+    if (!selectedTenant) return;
+
+    const action = selectedTenant.status === TenantStatus.ACTIVE 
       ? suspendTenantAction 
       : activateTenantAction;
     
-    const result = await action(tenant.id);
+    const result = await action(selectedTenant.id);
     
     if (result.success) {
       toast.success(
-        tenant.status === TenantStatus.ACTIVE 
+        selectedTenant.status === TenantStatus.ACTIVE 
           ? 'Commerce suspendu' 
           : 'Commerce activé'
       );
+      setIsToggleStatusModalOpen(false);
+      setSelectedTenant(null);
       loadTenants();
     } else {
       toast.error(result.error);
     }
   };
 
-  const handleDelete = async (tenant: TenantWithStats) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${tenant.name}" ?`)) {
-      return;
-    }
+  const handleDelete = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedTenant) return;
     
-    const result = await deleteTenantAction(tenant.id);
+    const result = await deleteTenantAction(selectedTenant.id);
     
     if (result.success) {
       toast.success('Commerce supprimé');
+      setIsDeleteModalOpen(false);
+      setSelectedTenant(null);
       loadTenants();
     } else {
       toast.error(result.error);
@@ -351,6 +371,34 @@ export default function TenantsPage() {
         tenant={editingTenant}
         onSubmit={editingTenant ? handleUpdate : handleCreate}
         isSubmitting={isSubmitting}
+      />
+
+      {/* Modal de confirmation pour toggle status */}
+      <ConfirmationModal
+        isOpen={isToggleStatusModalOpen}
+        onClose={() => {
+          setIsToggleStatusModalOpen(false);
+          setSelectedTenant(null);
+        }}
+        onConfirm={confirmToggleStatus}
+        title={selectedTenant?.status === TenantStatus.ACTIVE ? "Suspendre le commerce" : "Activer le commerce"}
+        message={`Êtes-vous sûr de vouloir ${selectedTenant?.status === TenantStatus.ACTIVE ? 'suspendre' : 'activer'} le commerce "${selectedTenant?.name}" ?`}
+        confirmText={selectedTenant?.status === TenantStatus.ACTIVE ? "Suspendre" : "Activer"}
+        variant="warning"
+      />
+
+      {/* Modal de confirmation pour suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedTenant(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Supprimer le commerce"
+        message={`Êtes-vous sûr de vouloir supprimer le commerce "${selectedTenant?.name}" ? Cette action est irréversible et supprimera toutes les données associées.`}
+        confirmText="Supprimer"
+        variant="danger"
       />
     </div>
   );

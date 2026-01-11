@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import ResetPasswordForm from "./_components/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Conect Cards Dashboard | Reset Password",
-  description: "Page de réinitialisation de mot de passe de conect cards dashboard",
+  title: "Saas - Application de gestion de commerce | Reset Password",
+  description: "Page de réinitialisation de mot de passe de Saas - Application de gestion de commerce",
 };
 
 export default function ResetPassword() {

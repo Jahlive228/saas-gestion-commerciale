@@ -4,6 +4,11 @@ import StatsCards from './_components/StatsCards';
 import RevenueChart from './_components/RevenueChart';
 import QuickActions from './_components/QuickActions';
 
+export const metadata = {
+  title: "Saas - Application de gestion de commerce | Dashboard Admin",
+  description: "Page de dashboard de Saas - Application de gestion de commerce",
+};
+
 export default async function AdminDashboardPage() {
   // Charger les données en parallèle
   const [statsResult, chartResult] = await Promise.all([

@@ -12,6 +12,8 @@ import AppHeader from "./_components/AppHeader";
  * Note: L'authentification est vérifiée dans les layouts enfants
  * car ce layout est client-side pour gérer la sidebar
  */
+
+
 export default function DashboardLayout({
   children,
 }: {
