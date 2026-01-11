@@ -149,6 +149,8 @@ export const ROUTE_PERMISSIONS: Record<string, PermissionCode[]> = {
   // Dashboard routes
   '/admin/utilisateurs': [PERMISSION_CODES.USERS_VIEW],
   '/admin/roles': [PERMISSION_CODES.ROLES_VIEW],
+  '/admin/permissions': [PERMISSION_CODES.PERMISSIONS_VIEW],
+  '/admin/categories': [PERMISSION_CODES.CATEGORIES_VIEW],
 } as const;
 
 /**

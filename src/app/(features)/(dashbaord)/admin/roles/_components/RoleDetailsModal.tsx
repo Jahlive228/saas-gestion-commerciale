@@ -1,7 +1,20 @@
 import React from "react";
 import { Modal } from "@/components/ui/modal/index";
 import { useRoleDetails } from "../_services/queries";
-import type { Role } from "../../utilisateurs/_services/types";
+import type { Role } from "../_services/types";
+
+// Couleurs par module de permission
+const MODULE_COLORS: Record<string, { bg: string; text: string }> = {
+  tenants: { bg: 'bg-error-100', text: 'text-error-700' },
+  users: { bg: 'bg-brand-100', text: 'text-brand-700' },
+  products: { bg: 'bg-blue-light-100', text: 'text-blue-light-700' },
+  categories: { bg: 'bg-orange-100', text: 'text-orange-700' },
+  stock: { bg: 'bg-warning-100', text: 'text-warning-700' },
+  sales: { bg: 'bg-success-100', text: 'text-success-700' },
+  stats: { bg: 'bg-theme-purple-500/20', text: 'text-theme-purple-500' },
+  roles: { bg: 'bg-gray-100', text: 'text-gray-700' },
+  permissions: { bg: 'bg-gray-100', text: 'text-gray-700' },
+};
 
 interface RoleDetailsModalProps {
   isOpen: boolean;
@@ -15,7 +28,7 @@ export default function RoleDetailsModal({
   role,
 }: RoleDetailsModalProps) {
   const { data: roleDetailsResponse, isLoading } = useRoleDetails(
-    role?.id || "",
+    role?.code || "",
     isOpen && !!role
   );
 
@@ -65,51 +78,68 @@ export default function RoleDetailsModal({
               </div>
             </div>
 
-            {/* Permissions associées */}
+            {/* Permissions associées groupées par module */}
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-4">
                 Permissions ({roleDetails.permissions?.length || 0})
               </h4>
 
               {roleDetails.permissions && roleDetails.permissions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roleDetails.permissions.map((permission) => (
-                    <div
-                      key={permission.id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg
-                              className="w-4 h-4 text-green-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-800 mb-2 inline-block">
-                            {permission.code}
-                          </div>
-                          <h5 className="text-sm font-medium text-gray-900 mb-1">
-                            {permission.name}
+                <div className="space-y-4">
+                  {/* Grouper les permissions par module */}
+                  {Object.entries(
+                    roleDetails.permissions.reduce((acc: Record<string, typeof roleDetails.permissions>, perm) => {
+                      const module = perm.module || 'other';
+                      if (!acc[module]) acc[module] = [];
+                      acc[module].push(perm);
+                      return acc;
+                    }, {})
+                  ).map(([module, perms]) => {
+                    const colors = MODULE_COLORS[module] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+                    return (
+                      <div key={module} className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className={`${colors.bg} px-4 py-2`}>
+                          <h5 className={`font-medium ${colors.text} capitalize`}>
+                            {module} ({perms.length})
                           </h5>
-                          <p className="text-xs text-gray-600">
-                            {permission.description}
-                          </p>
+                        </div>
+                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {perms.map((permission) => (
+                            <div
+                              key={permission.id}
+                              className="flex items-start space-x-2"
+                            >
+                              <div className="flex-shrink-0 mt-0.5">
+                                <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center">
+                                  <svg
+                                    className="w-3 h-3 text-success-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {permission.name}
+                                </p>
+                                <p className="text-xs text-gray-500 font-mono">
+                                  {permission.code}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">

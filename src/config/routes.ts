@@ -15,6 +15,7 @@ export const routes = {
     admin: {
       utilisateurs: '/admin/utilisateurs',
       roles: '/admin/roles',
+      permissions: '/admin/permissions',
     },
 
     //Profile

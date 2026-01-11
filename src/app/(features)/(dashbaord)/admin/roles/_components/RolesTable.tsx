@@ -4,7 +4,7 @@ import DataTable from "@/components/common/DataTable";
 import { useModal } from "@/hooks/useModal";
 import { useRoles } from "../_services/queries";
 import { getRoleColumns } from "../_services/columns";
-import type { Role } from "../../utilisateurs/_services/types";
+import type { Role } from "../_services/types";
 import RoleDetailsModal from "./RoleDetailsModal";
 
 interface RolesTableProps {

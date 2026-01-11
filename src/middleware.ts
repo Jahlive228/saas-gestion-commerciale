@@ -20,6 +20,11 @@ const privateRoutes = [
 
   // Routes profil
   routes.dashboard.profile,
+
+  // Routes Superadmin
+  routes.superadmin.home,
+  routes.superadmin.tenants,
+  routes.superadmin.stats,
 ];
 
 // Préfixes de routes privées pour une correspondance plus flexible

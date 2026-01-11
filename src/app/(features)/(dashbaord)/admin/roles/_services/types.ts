@@ -1,4 +1,27 @@
-import { Permission, Role } from "../../utilisateurs/_services/types";
+// Types pour les permissions
+export interface Permission {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  module: string | null;
+  roles_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Types pour les rôles
+export interface Role {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  level: number;
+  permissions_count: number;
+  users_count: number;
+  created_at: string;
+  updated_at: string;
+}
 
 // Types pour les réponses API des rôles
 export interface GetAllRolesResponse {
@@ -6,7 +29,7 @@ export interface GetAllRolesResponse {
   code: number;
   message: string;
   content: {
-    roles: (Role & Record<string, unknown>)[];
+    roles: Role[];
     pagination: {
       current_page: number;
       total_pages: number;
@@ -28,7 +51,7 @@ export interface GetAllPermissionsResponse {
   code: number;
   message: string;
   content: {
-    permissions: (Permission & Record<string, unknown>)[];
+    permissions: Permission[];
     pagination: {
       current_page: number;
       total_pages: number;

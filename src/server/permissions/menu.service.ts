@@ -38,22 +38,72 @@ export class MenuService {
     // Menu selon le rôle et les permissions
     const roleMenu: MenuItem[] = [];
 
-    // SUPERADMIN
+    // SUPERADMIN - Accès complet à toutes les fonctionnalités
     if (role === 'SUPERADMIN') {
-      roleMenu.push(
-        {
-          name: 'Tenants',
-          path: '/superadmin/tenants',
-          icon: 'BuildingIcon',
-          permission: 'tenants.view' as PermissionCode,
-        },
-        {
-          name: 'Statistiques Globales',
-          path: '/superadmin/stats',
-          icon: 'ChartIcon',
-          permission: 'stats.view_global' as PermissionCode,
-        }
-      );
+      // Dashboard Superadmin
+      roleMenu.push({
+        name: 'Dashboard Superadmin',
+        path: '/superadmin',
+        icon: 'GridIcon',
+        permission: 'stats.view_global' as PermissionCode,
+      });
+      
+      // Gestion des Commerces (Tenants)
+      roleMenu.push({
+        name: 'Commerces',
+        path: '/superadmin/tenants',
+        icon: 'BuildingIcon',
+        permission: 'tenants.view' as PermissionCode,
+      });
+      
+      // Statistiques Globales
+      roleMenu.push({
+        name: 'Statistiques Globales',
+        path: '/superadmin/stats',
+        icon: 'ChartIcon',
+        permission: 'stats.view_global' as PermissionCode,
+      });
+
+      // Le SUPERADMIN a aussi accès aux fonctionnalités des commerces
+      // Produits (tous commerces)
+      if (userPermissions.includes('products.view')) {
+        roleMenu.push({
+          name: 'Produits',
+          path: '/admin/products',
+          icon: 'PackageIcon',
+          permission: 'products.view' as PermissionCode,
+        });
+      }
+
+      // Catégories
+      if (userPermissions.includes('categories.view')) {
+        roleMenu.push({
+          name: 'Catégories',
+          path: '/admin/categories',
+          icon: 'FolderIcon',
+          permission: 'categories.view' as PermissionCode,
+        });
+      }
+
+      // Stocks
+      if (userPermissions.includes('stock.view')) {
+        roleMenu.push({
+          name: 'Stocks',
+          path: '/admin/stock',
+          icon: 'WarehouseIcon',
+          permission: 'stock.view' as PermissionCode,
+        });
+      }
+
+      // Ventes
+      if (userPermissions.includes('sales.view')) {
+        roleMenu.push({
+          name: 'Ventes',
+          path: '/admin/sales',
+          icon: 'ShoppingCartIcon',
+          permission: 'sales.view' as PermissionCode,
+        });
+      }
     }
 
     // DIRECTEUR
@@ -160,9 +210,17 @@ export class MenuService {
       
       if (userPermissions.includes('roles.view')) {
         adminMenu.push({
-          name: 'Rôles & Permissions',
+          name: 'Rôles',
           path: '/admin/roles',
           icon: 'ShieldIcon',
+        });
+      }
+
+      if (userPermissions.includes('permissions.view')) {
+        adminMenu.push({
+          name: 'Permissions',
+          path: '/admin/permissions',
+          icon: 'LockIcon',
         });
       }
 
