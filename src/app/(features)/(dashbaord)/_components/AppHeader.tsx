@@ -119,7 +119,7 @@ const AppHeader: React.FC = () => {
           <div className="flex items-center gap-2 2xsm:gap-3">
 
             {/* <!-- Notification Menu Area --> */}
-           <NotificationDropdown /> 
+           {/* <NotificationDropdown />  */}
           </div>
           {/* <!-- User Area --> */}
           <UserDropdown /> 
