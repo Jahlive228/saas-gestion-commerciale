@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { env } from '@/config/env';
 import { routes } from '@/config/routes';
-import { destroySessionAction, getAccessTokenAction } from '../../services/auth.action';
+import { getAccessTokenAction } from '../../services/auth.action';
 
 const apiUrl = env.API_URL;
 
