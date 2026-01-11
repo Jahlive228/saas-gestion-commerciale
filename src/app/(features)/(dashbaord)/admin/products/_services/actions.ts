@@ -10,11 +10,10 @@ export interface Product {
   id: string;
   name: string;
   description: string | null;
-  sku: string;
-  barcode: string | null;
+  sku: string | null;
   price: number;
   cost_price: number | null;
-  quantity: number;
+  stock_qty: number;
   min_stock: number;
   category: {
     id: string;
@@ -24,7 +23,6 @@ export interface Product {
     id: string;
     name: string;
   };
-  is_active: boolean;
   created_at: Date;
 }
 
@@ -70,14 +68,12 @@ export async function getProductsAction(): Promise<{
         name: p.name,
         description: p.description,
         sku: p.sku,
-        barcode: p.barcode,
         price: Number(p.price),
         cost_price: p.cost_price ? Number(p.cost_price) : null,
-        quantity: p.quantity,
+        stock_qty: p.stock_qty,
         min_stock: p.min_stock,
         category: p.category,
         tenant: p.tenant,
-        is_active: p.is_active,
         created_at: p.created_at,
       })),
     };

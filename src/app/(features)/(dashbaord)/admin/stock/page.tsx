@@ -35,11 +35,11 @@ export default function StockPage() {
   }, []);
 
   const lowStockItems = stockItems.filter(
-    (item) => item.quantity <= item.min_stock && item.quantity > 0
+    (item) => item.stock_qty <= item.min_stock && item.stock_qty > 0
   );
-  const outOfStockItems = stockItems.filter((item) => item.quantity === 0);
+  const outOfStockItems = stockItems.filter((item) => item.stock_qty === 0);
   const healthyStockItems = stockItems.filter(
-    (item) => item.quantity > item.min_stock
+    (item) => item.stock_qty > item.min_stock
   );
 
   const columns = [
@@ -57,7 +57,7 @@ export default function StockPage() {
             </div>
             <div>
               <p className="font-medium text-gray-900">{item.name}</p>
-              <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+              <p className="text-xs text-gray-500">SKU: {item.sku || "N/A"}</p>
             </div>
           </div>
         );
@@ -76,13 +76,13 @@ export default function StockPage() {
       },
     },
     {
-      key: "quantity",
+      key: "stock_qty",
       title: "Quantité",
       align: "center" as const,
       render: (_: unknown, record: Record<string, unknown>) => {
         const item = record as unknown as StockItem;
-        const isLowStock = item.quantity <= item.min_stock && item.quantity > 0;
-        const isOutOfStock = item.quantity === 0;
+        const isLowStock = item.stock_qty <= item.min_stock && item.stock_qty > 0;
+        const isOutOfStock = item.stock_qty === 0;
 
         return (
           <div className="flex items-center justify-center gap-2">
@@ -95,7 +95,7 @@ export default function StockPage() {
                     : "bg-success-100 text-success-700"
               }`}
             >
-              {item.quantity}
+              {item.stock_qty}
             </span>
             {(isLowStock || isOutOfStock) && (
               <ExclamationTriangleIcon

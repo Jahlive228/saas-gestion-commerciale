@@ -42,7 +42,7 @@ export default function ProductsPage() {
             </div>
             <div>
               <p className="font-medium text-gray-900">{product.name}</p>
-              <p className="text-xs text-gray-500">SKU: {product.sku}</p>
+              <p className="text-xs text-gray-500">SKU: {product.sku || "N/A"}</p>
             </div>
           </div>
         );
@@ -78,21 +78,24 @@ export default function ProductsPage() {
       },
     },
     {
-      key: "quantity",
+      key: "stock_qty",
       title: "Stock",
       align: "center" as const,
       render: (_: unknown, record: Record<string, unknown>) => {
         const product = record as unknown as Product;
-        const isLowStock = product.quantity <= product.min_stock;
+        const isLowStock = product.stock_qty <= product.min_stock && product.stock_qty > 0;
+        const isOutOfStock = product.stock_qty === 0;
         return (
           <span
             className={`px-2 py-1 rounded-full text-xs font-medium ${
-              isLowStock
+              isOutOfStock
                 ? "bg-error-50 text-error-700"
-                : "bg-success-50 text-success-700"
+                : isLowStock
+                  ? "bg-warning-50 text-warning-700"
+                  : "bg-success-50 text-success-700"
             }`}
           >
-            {product.quantity} unités
+            {product.stock_qty} unités
           </span>
         );
       },
@@ -104,25 +107,6 @@ export default function ProductsPage() {
         const product = record as unknown as Product;
         return (
           <span className="text-sm text-gray-600">{product.tenant?.name}</span>
-        );
-      },
-    },
-    {
-      key: "is_active",
-      title: "Statut",
-      align: "center" as const,
-      render: (_: unknown, record: Record<string, unknown>) => {
-        const product = record as unknown as Product;
-        return (
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              product.is_active
-                ? "bg-success-50 text-success-700"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {product.is_active ? "Actif" : "Inactif"}
-          </span>
         );
       },
     },
@@ -153,21 +137,21 @@ export default function ProductsPage() {
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Produits Actifs</p>
+          <p className="text-sm text-gray-500">Stock Sain</p>
           <p className="text-2xl font-bold text-success-600 mt-1">
-            {products.filter((p) => p.is_active).length}
+            {products.filter((p) => p.stock_qty > p.min_stock).length}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Stock Faible</p>
           <p className="text-2xl font-bold text-warning-600 mt-1">
-            {products.filter((p) => p.quantity <= p.min_stock && p.quantity > 0).length}
+            {products.filter((p) => p.stock_qty <= p.min_stock && p.stock_qty > 0).length}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Rupture de Stock</p>
           <p className="text-2xl font-bold text-error-600 mt-1">
-            {products.filter((p) => p.quantity === 0).length}
+            {products.filter((p) => p.stock_qty === 0).length}
           </p>
         </div>
       </div>

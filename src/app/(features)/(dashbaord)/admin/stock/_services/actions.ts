@@ -9,8 +9,8 @@ import { Role } from "@prisma/client";
 export interface StockItem {
   id: string;
   name: string;
-  sku: string;
-  quantity: number;
+  sku: string | null;
+  stock_qty: number;
   min_stock: number;
   category: {
     id: string;
@@ -39,15 +39,12 @@ export async function getStockAction(): Promise<{
       role === Role.SUPERADMIN ? {} : { tenant_id: tenantId || undefined };
 
     const products = await prisma.product.findMany({
-      where: {
-        ...whereClause,
-        is_active: true,
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
         sku: true,
-        quantity: true,
+        stock_qty: true,
         min_stock: true,
         category: {
           select: {
@@ -62,7 +59,7 @@ export async function getStockAction(): Promise<{
           },
         },
       },
-      orderBy: [{ quantity: "asc" }, { name: "asc" }],
+      orderBy: [{ stock_qty: "asc" }, { name: "asc" }],
     });
 
     return {
