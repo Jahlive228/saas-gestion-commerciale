@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StockService } from '@/server/services/stock.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/stock
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
     };
 
-    const result = await StockService.getStockHistory(session.user, filters);
+    const authUser = sessionToAuthUser(session);
+    const result = await StockService.getStockHistory(authUser, filters);
 
     return NextResponse.json({
       success: true,

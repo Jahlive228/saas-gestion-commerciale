@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { SalesService } from '@/server/services/sales.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/sales
@@ -23,8 +24,9 @@ export async function GET(request: NextRequest) {
       tenant_id: searchParams.get('tenant_id') || undefined,
     };
 
-    const tenantId = session.user.role === 'SUPERADMIN' ? filters.tenant_id : session.user.tenant_id;
-    const result = await SalesService.getSales(session.user, tenantId, filters);
+    const authUser = sessionToAuthUser(session);
+    const tenantId = authUser.role === 'SUPERADMIN' ? filters.tenant_id : authUser.tenant_id;
+    const result = await SalesService.getSales(authUser, tenantId, filters);
 
     return NextResponse.json({
       success: true,
@@ -53,7 +55,8 @@ export async function POST(request: NextRequest) {
     await requirePermission(PERMISSION_CODES.SALES_CREATE);
 
     const body = await request.json();
-    const result = await SalesService.createSale(session.user, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await SalesService.createSale(authUser, body);
 
     if (!result.success) {
       return NextResponse.json(

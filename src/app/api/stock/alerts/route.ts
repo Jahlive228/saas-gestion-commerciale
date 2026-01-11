@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StockService } from '@/server/services/stock.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/stock/alerts
@@ -14,7 +15,8 @@ export async function GET(request: NextRequest) {
     const session = await requireAuth();
     await requirePermission(PERMISSION_CODES.STOCK_VIEW);
 
-    const products = await StockService.getStockAlerts(session.user);
+    const authUser = sessionToAuthUser(session);
+    const products = await StockService.getStockAlerts(authUser);
 
     return NextResponse.json({
       success: true,

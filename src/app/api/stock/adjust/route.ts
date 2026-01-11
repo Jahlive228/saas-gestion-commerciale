@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StockService } from '@/server/services/stock.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * POST /api/stock/adjust
@@ -15,7 +16,8 @@ export async function POST(request: NextRequest) {
     await requirePermission(PERMISSION_CODES.STOCK_ADJUST);
 
     const body = await request.json();
-    const result = await StockService.adjustStock(session.user, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await StockService.adjustStock(authUser, body);
 
     if (!result.success) {
       return NextResponse.json(

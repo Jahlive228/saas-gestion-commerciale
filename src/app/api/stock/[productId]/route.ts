@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StockService } from '@/server/services/stock.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/stock/:productId
@@ -18,7 +19,8 @@ export async function GET(
     await requirePermission(PERMISSION_CODES.STOCK_HISTORY_VIEW);
 
     const { productId } = await context.params;
-    const transactions = await StockService.getProductStockHistory(session.user, productId);
+    const authUser = sessionToAuthUser(session);
+    const transactions = await StockService.getProductStockHistory(authUser, productId);
 
     if (!transactions) {
       return NextResponse.json(

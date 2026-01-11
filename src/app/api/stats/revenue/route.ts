@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StatsService } from '@/server/services/stats.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/stats/revenue
@@ -13,8 +14,10 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth();
     
+    const authUser = sessionToAuthUser(session);
+    
     // Vérifier les permissions selon le rôle
-    if (session.user.role === 'SUPERADMIN') {
+    if (authUser.role === 'SUPERADMIN') {
       await requirePermission(PERMISSION_CODES.STATS_VIEW_GLOBAL);
     } else {
       await requirePermission(PERMISSION_CODES.STATS_VIEW_TENANT);
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
     };
 
-    const result = await StatsService.getRevenueStats(session.user, options);
+    const result = await StatsService.getRevenueStats(authUser, options);
 
     return NextResponse.json({
       success: true,

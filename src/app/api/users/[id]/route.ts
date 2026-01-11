@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { UsersService } from '@/server/services/users.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/users/:id
@@ -18,7 +19,8 @@ export async function GET(
     await requirePermission(PERMISSION_CODES.USERS_VIEW);
 
     const { id } = await context.params;
-    const user = await UsersService.getUserById(session.user, id);
+    const authUser = sessionToAuthUser(session);
+    const user = await UsersService.getUserById(authUser, id);
 
     if (!user) {
       return NextResponse.json(
@@ -61,7 +63,8 @@ export async function PUT(
 
     const { id } = await context.params;
     const body = await request.json();
-    const result = await UsersService.updateUser(session.user, id, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await UsersService.updateUser(authUser, id, body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -103,7 +106,8 @@ export async function DELETE(
     await requirePermission(PERMISSION_CODES.USERS_DELETE);
 
     const { id } = await context.params;
-    const result = await UsersService.deleteUser(session.user, id);
+    const authUser = sessionToAuthUser(session);
+    const result = await UsersService.deleteUser(authUser, id);
 
     if (!result.success) {
       return NextResponse.json(

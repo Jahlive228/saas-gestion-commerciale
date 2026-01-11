@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { UsersService } from '@/server/services/users.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/users
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
       tenant_id: searchParams.get('tenant_id') || undefined,
     };
 
-    const result = await UsersService.getUsers(session.user, filters);
+    const authUser = sessionToAuthUser(session);
+    const result = await UsersService.getUsers(authUser, filters);
 
     return NextResponse.json({
       success: true,
@@ -53,7 +55,8 @@ export async function POST(request: NextRequest) {
     await requirePermission(PERMISSION_CODES.USERS_CREATE);
 
     const body = await request.json();
-    const result = await UsersService.createUser(session.user, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await UsersService.createUser(authUser, body);
 
     if (!result.success) {
       return NextResponse.json(

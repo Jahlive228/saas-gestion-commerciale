@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { UsersService } from '@/server/services/users.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * POST /api/users/:id/deactivate
@@ -18,7 +19,8 @@ export async function POST(
     await requirePermission(PERMISSION_CODES.USERS_DEACTIVATE);
 
     const { id } = await context.params;
-    const result = await UsersService.deactivateUser(session.user, id);
+    const authUser = sessionToAuthUser(session);
+    const result = await UsersService.deactivateUser(authUser, id);
 
     if (!result.success) {
       return NextResponse.json(

@@ -5,6 +5,7 @@ import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { prisma } from '@/lib/prisma';
 import { TenantIsolation } from '@/server/middleware/tenant-isolation';
 import { SaleStatus, TransactionType } from '@prisma/client';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * POST /api/sales/:id/cancel
@@ -43,7 +44,8 @@ export async function POST(
       );
     }
 
-    if (!TenantIsolation.canAccessTenant(session.user, sale.tenant_id)) {
+    const authUser = sessionToAuthUser(session);
+    if (!TenantIsolation.canAccessTenant(authUser, sale.tenant_id)) {
       return NextResponse.json(
         {
           success: false,
@@ -88,7 +90,7 @@ export async function POST(
         await tx.stockTransaction.create({
           data: {
             product_id: item.product_id,
-            user_id: session.user.id,
+            user_id: authUser.id,
             type: TransactionType.RETURN,
             quantity: item.quantity,
             reason: `Annulation de la vente ${sale.reference}`,

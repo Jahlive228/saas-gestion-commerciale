@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { CategoriesService } from '@/server/services/categories.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/categories
@@ -22,7 +23,8 @@ export async function GET(request: NextRequest) {
       tenant_id: searchParams.get('tenant_id') || undefined,
     };
 
-    const result = await CategoriesService.getCategories(session.user, filters);
+    const authUser = sessionToAuthUser(session);
+    const result = await CategoriesService.getCategories(authUser, filters);
 
     return NextResponse.json({
       success: true,
@@ -51,7 +53,8 @@ export async function POST(request: NextRequest) {
     await requirePermission(PERMISSION_CODES.CATEGORIES_CREATE);
 
     const body = await request.json();
-    const result = await CategoriesService.createCategory(session.user, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await CategoriesService.createCategory(authUser, body);
 
     if (!result.success) {
       return NextResponse.json(

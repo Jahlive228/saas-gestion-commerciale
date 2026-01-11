@@ -5,6 +5,7 @@ import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { prisma } from '@/lib/prisma';
 import { TenantIsolation } from '@/server/middleware/tenant-isolation';
 import { SaleStatus } from '@prisma/client';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/sales/:id
@@ -62,7 +63,8 @@ export async function GET(
     }
 
     // Vérifier l'accès au tenant
-    if (!TenantIsolation.canAccessTenant(session.user, sale.tenant_id)) {
+    const authUser = sessionToAuthUser(session);
+    if (!TenantIsolation.canAccessTenant(authUser, sale.tenant_id)) {
       return NextResponse.json(
         {
           success: false,
@@ -120,7 +122,8 @@ export async function PUT(
       );
     }
 
-    if (!TenantIsolation.canAccessTenant(session.user, sale.tenant_id)) {
+    const authUser = sessionToAuthUser(session);
+    if (!TenantIsolation.canAccessTenant(authUser, sale.tenant_id)) {
       return NextResponse.json(
         {
           success: false,

@@ -3,6 +3,7 @@ import { requireAuth } from '@/server/auth/require-auth';
 import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { CategoriesService } from '@/server/services/categories.service';
+import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/categories/:id
@@ -18,7 +19,8 @@ export async function GET(
     await requirePermission(PERMISSION_CODES.CATEGORIES_VIEW);
 
     const { id } = await context.params;
-    const category = await CategoriesService.getCategoryById(session.user, id);
+    const authUser = sessionToAuthUser(session);
+    const category = await CategoriesService.getCategoryById(authUser, id);
 
     if (!category) {
       return NextResponse.json(
@@ -61,7 +63,8 @@ export async function PUT(
 
     const { id } = await context.params;
     const body = await request.json();
-    const result = await CategoriesService.updateCategory(session.user, id, body);
+    const authUser = sessionToAuthUser(session);
+    const result = await CategoriesService.updateCategory(authUser, id, body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -103,7 +106,8 @@ export async function DELETE(
     await requirePermission(PERMISSION_CODES.CATEGORIES_DELETE);
 
     const { id } = await context.params;
-    const result = await CategoriesService.deleteCategory(session.user, id);
+    const authUser = sessionToAuthUser(session);
+    const result = await CategoriesService.deleteCategory(authUser, id);
 
     if (!result.success) {
       return NextResponse.json(
