@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import {
@@ -9,45 +8,17 @@ import {
   DocumentTextIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
+import { getSalesAction, type Sale } from "./_services/actions";
+import { SaleStatus } from "@prisma/client";
 
-interface Sale {
-  id: string;
-  reference: string;
-  total_amount: number;
-  discount_amount: number;
-  tax_amount: number;
-  status: "PENDING" | "COMPLETED" | "CANCELLED" | "REFUNDED";
-  payment_method: string | null;
-  items_count: number;
-  user: {
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-  };
-  tenant: {
-    id: string;
-    name: string;
-  };
-  created_at: string;
-}
-
-async function fetchSales(): Promise<Sale[]> {
-  const response = await fetch("/api/sales");
-  if (!response.ok) {
-    throw new Error("Erreur lors de la récupération des ventes");
-  }
-  const data = await response.json();
-  return data.data || [];
-}
-
-const statusLabels: Record<Sale["status"], string> = {
+const statusLabels: Record<SaleStatus, string> = {
   PENDING: "En attente",
   COMPLETED: "Complétée",
   CANCELLED: "Annulée",
   REFUNDED: "Remboursée",
 };
 
-const statusColors: Record<Sale["status"], string> = {
+const statusColors: Record<SaleStatus, string> = {
   PENDING: "bg-warning-100 text-warning-700",
   COMPLETED: "bg-success-100 text-success-700",
   CANCELLED: "bg-gray-100 text-gray-600",
@@ -55,19 +26,26 @@ const statusColors: Record<Sale["status"], string> = {
 };
 
 export default function SalesPage() {
-  const [statusFilter, setStatusFilter] = useState<Sale["status"] | "ALL">(
-    "ALL"
-  );
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<SaleStatus | "ALL">("ALL");
 
-  const {
-    data: sales = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["sales"],
-    queryFn: fetchSales,
-  });
+  const loadSales = async () => {
+    setIsLoading(true);
+    setError(null);
+    const result = await getSalesAction();
+    if (result.success && result.data) {
+      setSales(result.data);
+    } else {
+      setError(result.error || "Erreur lors du chargement");
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadSales();
+  }, []);
 
   const filteredSales =
     statusFilter === "ALL"
@@ -86,7 +64,7 @@ export default function SalesPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: Date | string) => {
     return new Date(dateStr).toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "short",
@@ -191,7 +169,7 @@ export default function SalesPage() {
       key: "actions",
       title: "Actions",
       align: "center" as const,
-      render: (_: unknown, record: Record<string, unknown>) => {
+      render: () => {
         return (
           <div className="flex items-center justify-center gap-2">
             <Button variant="outline" size="sm">
@@ -213,7 +191,7 @@ export default function SalesPage() {
             Consultez et gérez toutes les ventes de la plateforme
           </p>
         </div>
-        <Button variant="outline" onClick={() => refetch()} className="flex items-center gap-2">
+        <Button variant="outline" onClick={loadSales} className="flex items-center gap-2">
           <ArrowPathIcon className="w-5 h-5" />
           Actualiser
         </Button>
@@ -258,7 +236,7 @@ export default function SalesPage() {
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              {status === "ALL" ? "Toutes" : statusLabels[status]}
+              {status === "ALL" ? "Toutes" : statusLabels[status as SaleStatus]}
             </button>
           )
         )}
@@ -269,10 +247,8 @@ export default function SalesPage() {
         <div className="p-6">
           {error ? (
             <div className="text-center py-8">
-              <p className="text-error-600 mb-4">
-                Erreur lors du chargement des ventes
-              </p>
-              <Button variant="outline" onClick={() => refetch()}>
+              <p className="text-error-600 mb-4">{error}</p>
+              <Button variant="outline" onClick={loadSales}>
                 Réessayer
               </Button>
             </div>

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import {
@@ -9,63 +8,31 @@ import {
   ArrowDownIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-
-interface StockItem {
-  id: string;
-  name: string;
-  sku: string;
-  quantity: number;
-  min_stock: number;
-  category: {
-    id: string;
-    name: string;
-  } | null;
-  tenant: {
-    id: string;
-    name: string;
-  };
-  last_restock: string | null;
-}
-
-interface StockTransaction {
-  id: string;
-  type: "ENTRY" | "EXIT" | "ADJUSTMENT" | "SALE" | "RETURN";
-  quantity: number;
-  reason: string | null;
-  product: {
-    id: string;
-    name: string;
-  };
-  user: {
-    first_name: string | null;
-    last_name: string | null;
-  };
-  created_at: string;
-}
-
-async function fetchStock(): Promise<StockItem[]> {
-  const response = await fetch("/api/stock");
-  if (!response.ok) {
-    throw new Error("Erreur lors de la récupération du stock");
-  }
-  const data = await response.json();
-  return data.data || [];
-}
+import { getStockAction, type StockItem } from "./_services/actions";
 
 export default function StockPage() {
+  const [stockItems, setStockItems] = useState<StockItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"inventory" | "movements">(
     "inventory"
   );
 
-  const {
-    data: stockItems = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["stock"],
-    queryFn: fetchStock,
-  });
+  const loadStock = async () => {
+    setIsLoading(true);
+    setError(null);
+    const result = await getStockAction();
+    if (result.success && result.data) {
+      setStockItems(result.data);
+    } else {
+      setError(result.error || "Erreur lors du chargement");
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadStock();
+  }, []);
 
   const lowStockItems = stockItems.filter(
     (item) => item.quantity <= item.min_stock && item.quantity > 0
@@ -162,7 +129,7 @@ export default function StockPage() {
       key: "actions",
       title: "Actions",
       align: "center" as const,
-      render: (_: unknown, record: Record<string, unknown>) => {
+      render: () => {
         return (
           <div className="flex items-center justify-center gap-2">
             <Button variant="outline" size="sm" className="text-success-600">
@@ -261,10 +228,8 @@ export default function StockPage() {
         <div className="p-6">
           {error ? (
             <div className="text-center py-8">
-              <p className="text-error-600 mb-4">
-                Erreur lors du chargement du stock
-              </p>
-              <Button variant="outline" onClick={() => refetch()}>
+              <p className="text-error-600 mb-4">{error}</p>
+              <Button variant="outline" onClick={loadStock}>
                 Réessayer
               </Button>
             </div>

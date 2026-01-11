@@ -1,46 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon, FolderIcon } from "@heroicons/react/24/outline";
-
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  slug: string;
-  color: string | null;
-  tenant: {
-    id: string;
-    name: string;
-  };
-  _count?: {
-    products: number;
-  };
-  created_at: string;
-}
-
-async function fetchCategories(): Promise<Category[]> {
-  const response = await fetch("/api/categories");
-  if (!response.ok) {
-    throw new Error("Erreur lors de la récupération des catégories");
-  }
-  const data = await response.json();
-  return data.data || [];
-}
+import { getCategoriesAction, type Category } from "./_services/actions";
 
 export default function CategoriesPage() {
-  const {
-    data: categories = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadCategories = async () => {
+    setIsLoading(true);
+    setError(null);
+    const result = await getCategoriesAction();
+    if (result.success && result.data) {
+      setCategories(result.data);
+    } else {
+      setError(result.error || "Erreur lors du chargement");
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const columns = [
     {
@@ -169,10 +154,8 @@ export default function CategoriesPage() {
         <div className="p-6">
           {error ? (
             <div className="text-center py-8">
-              <p className="text-error-600 mb-4">
-                Erreur lors du chargement des catégories
-              </p>
-              <Button variant="outline" onClick={() => refetch()}>
+              <p className="text-error-600 mb-4">{error}</p>
+              <Button variant="outline" onClick={loadCategories}>
                 Réessayer
               </Button>
             </div>
