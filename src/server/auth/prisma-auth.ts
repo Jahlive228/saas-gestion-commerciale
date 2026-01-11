@@ -23,39 +23,53 @@ export async function authenticateUser(
   password: string
 ): Promise<{ success: true; user: AuthUser } | { success: false; error: string }> {
   try {
-    console.log('[authenticateUser] Recherche de l\'utilisateur:', email);
+    console.log('[authenticateUser] ===== Début de l\'authentification =====');
+    console.log('[authenticateUser] Email reçu:', email);
+    console.log('[authenticateUser] Longueur du mot de passe:', password?.length);
     
+    console.log('[authenticateUser] Recherche de l\'utilisateur dans la base de données...');
     const user = await prisma.user.findUnique({
       where: { email },
       include: { tenant: true },
     });
 
     if (!user) {
-      console.log('[authenticateUser] Utilisateur non trouvé:', email);
+      console.log('[authenticateUser] ❌ Utilisateur non trouvé pour l\'email:', email);
       return { success: false, error: 'Email ou mot de passe incorrect' };
     }
 
-    console.log('[authenticateUser] Utilisateur trouvé:', user.email, 'is_active:', user.is_active);
+    console.log('[authenticateUser] ✅ Utilisateur trouvé');
+    console.log('[authenticateUser] ID:', user.id);
+    console.log('[authenticateUser] Email:', user.email);
+    console.log('[authenticateUser] Is_active:', user.is_active);
+    console.log('[authenticateUser] Role:', user.role);
+    console.log('[authenticateUser] Tenant_id:', user.tenant_id);
 
     if (!user.is_active) {
-      console.log('[authenticateUser] Compte désactivé:', email);
+      console.log('[authenticateUser] ❌ Compte désactivé pour:', email);
       return { success: false, error: 'Compte désactivé' };
     }
 
-    console.log('[authenticateUser] Vérification du mot de passe...');
+    console.log('[authenticateUser] Vérification du mot de passe avec bcrypt...');
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    console.log('[authenticateUser] Résultat de la vérification du mot de passe:', isValidPassword);
+    
     if (!isValidPassword) {
-      console.log('[authenticateUser] Mot de passe incorrect pour:', email);
+      console.log('[authenticateUser] ❌ Mot de passe incorrect pour:', email);
       return { success: false, error: 'Email ou mot de passe incorrect' };
     }
 
-    console.log('[authenticateUser] Mot de passe valide, mise à jour de last_login...');
+    console.log('[authenticateUser] ✅ Mot de passe valide');
+    console.log('[authenticateUser] Mise à jour de last_login...');
 
     // Mettre à jour last_login
     await prisma.user.update({
       where: { id: user.id },
       data: { last_login: new Date() },
     });
+
+    console.log('[authenticateUser] ✅ last_login mis à jour');
+    console.log('[authenticateUser] ===== Authentification réussie =====');
 
     return {
       success: true,
@@ -70,9 +84,14 @@ export async function authenticateUser(
         two_factor_enabled: user.two_factor_enabled,
       },
     };
-  } catch (error) {
-    console.error('Erreur lors de l\'authentification:', error);
-    return { success: false, error: 'Erreur lors de l\'authentification' };
+  } catch (error: any) {
+    console.error('[authenticateUser] ❌ ===== ERREUR LORS DE L\'AUTHENTIFICATION =====');
+    console.error('[authenticateUser] Type d\'erreur:', error?.constructor?.name);
+    console.error('[authenticateUser] Code d\'erreur:', error?.code);
+    console.error('[authenticateUser] Message:', error?.message);
+    console.error('[authenticateUser] Stack:', error?.stack);
+    console.error('[authenticateUser] ===== FIN ERREUR =====');
+    return { success: false, error: 'Erreur lors de l\'authentification: ' + (error?.message || 'Erreur inconnue') };
   }
 }
 

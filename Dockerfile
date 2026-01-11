@@ -78,6 +78,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma files for migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 # Copy source files needed for seed scripts (constants)
@@ -105,11 +106,22 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Create entrypoint script to run migrations and seed permissions before starting the app
-# Note: We'll use a simpler approach - just run migrations, seed will be done manually if needed
 RUN echo '#!/bin/sh' > /tmp/entrypoint.sh && \
+    echo 'set -e' >> /tmp/entrypoint.sh && \
+    echo 'echo "=== Starting migration process ==="' >> /tmp/entrypoint.sh && \
+    echo 'echo "Waiting for database connection..."' >> /tmp/entrypoint.sh && \
+    echo 'for i in 1 2 3 4 5 6 7 8 9 10; do' >> /tmp/entrypoint.sh && \
+    echo '  if node node_modules/.bin/prisma db execute --stdin <<< "SELECT 1" > /dev/null 2>&1; then' >> /tmp/entrypoint.sh && \
+    echo '    echo "✓ Database is ready!"' >> /tmp/entrypoint.sh && \
+    echo '    break' >> /tmp/entrypoint.sh && \
+    echo '  fi' >> /tmp/entrypoint.sh && \
+    echo '  echo "Waiting for database... ($i/10)"' >> /tmp/entrypoint.sh && \
+    echo '  sleep 2' >> /tmp/entrypoint.sh && \
+    echo 'done' >> /tmp/entrypoint.sh && \
     echo 'echo "Running Prisma migrations..."' >> /tmp/entrypoint.sh && \
-    echo 'node node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma || true' >> /tmp/entrypoint.sh && \
-    echo 'echo "Migrations completed. Starting app..."' >> /tmp/entrypoint.sh && \
+    echo 'node node_modules/.bin/prisma migrate deploy' >> /tmp/entrypoint.sh && \
+    echo 'echo "✓ Migrations completed successfully"' >> /tmp/entrypoint.sh && \
+    echo 'echo "Starting application..."' >> /tmp/entrypoint.sh && \
     echo 'exec node server.js' >> /tmp/entrypoint.sh && \
     chmod +x /tmp/entrypoint.sh
 

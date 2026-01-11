@@ -18,8 +18,17 @@ export async function GET(
 ) {
   try {
     const { path: pathArray } = await context.params;
-    const session = await requireAuth();
     const path = `/${pathArray.join('/')}`;
+    
+    // Ignorer les routes d'authentification (elles ont leurs propres handlers)
+    if (path.startsWith('/auth/')) {
+      return NextResponse.json(
+        { error: 'Route non trouvée' },
+        { status: 404 }
+      );
+    }
+    
+    const session = await requireAuth();
     
     // Déterminer la permission requise selon le chemin
     const requiredPermissions = getRequiredPermissions(path, 'GET');
@@ -39,9 +48,10 @@ export async function GET(
         role: session.jwtPayload.role_name,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[API catch-all GET] Erreur:', error);
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', details: error.message },
       { status: 401 }
     );
   }
@@ -53,8 +63,18 @@ export async function POST(
 ) {
   try {
     const { path: pathArray } = await context.params;
-    const session = await requireAuth();
     const path = `/${pathArray.join('/')}`;
+    
+    // Ignorer les routes d'authentification (elles ont leurs propres handlers)
+    if (path.startsWith('/auth/')) {
+      console.log('[API catch-all POST] Route d\'authentification ignorée:', path);
+      return NextResponse.json(
+        { error: 'Route non trouvée' },
+        { status: 404 }
+      );
+    }
+    
+    const session = await requireAuth();
     
     const requiredPermissions = getRequiredPermissions(path, 'POST');
     
@@ -67,9 +87,10 @@ export async function POST(
       path,
       method: 'POST',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[API catch-all POST] Erreur:', error);
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', details: error.message },
       { status: 401 }
     );
   }
@@ -81,8 +102,18 @@ export async function PUT(
 ) {
   try {
     const { path: pathArray } = await context.params;
-    const session = await requireAuth();
     const path = `/${pathArray.join('/')}`;
+    
+    // Ignorer les routes d'authentification (elles ont leurs propres handlers)
+    if (path.startsWith('/auth/')) {
+      console.log('[API catch-all PUT] Route d\'authentification ignorée:', path);
+      return NextResponse.json(
+        { error: 'Route non trouvée' },
+        { status: 404 }
+      );
+    }
+    
+    const session = await requireAuth();
     
     const requiredPermissions = getRequiredPermissions(path, 'PUT');
     
@@ -95,9 +126,10 @@ export async function PUT(
       path,
       method: 'PUT',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[API catch-all PUT] Erreur:', error);
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', details: error.message },
       { status: 401 }
     );
   }
@@ -109,8 +141,18 @@ export async function DELETE(
 ) {
   try {
     const { path: pathArray } = await context.params;
-    const session = await requireAuth();
     const path = `/${pathArray.join('/')}`;
+    
+    // Ignorer les routes d'authentification (elles ont leurs propres handlers)
+    if (path.startsWith('/auth/')) {
+      console.log('[API catch-all DELETE] Route d\'authentification ignorée:', path);
+      return NextResponse.json(
+        { error: 'Route non trouvée' },
+        { status: 404 }
+      );
+    }
+    
+    const session = await requireAuth();
     
     const requiredPermissions = getRequiredPermissions(path, 'DELETE');
     
@@ -123,9 +165,10 @@ export async function DELETE(
       path,
       method: 'DELETE',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[API catch-all DELETE] Erreur:', error);
     return NextResponse.json(
-      { error: 'Unauthorized' },
+      { error: 'Unauthorized', details: error.message },
       { status: 401 }
     );
   }

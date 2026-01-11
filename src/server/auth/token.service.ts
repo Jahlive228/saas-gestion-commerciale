@@ -23,19 +23,54 @@ export class TokenService {
     userId: string,
     expiresInDays: number = 30
   ): Promise<string> {
-    const token = this.generateToken();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+    console.log('[TokenService] Création/mise à jour du token pour userId:', userId);
+    console.log('[TokenService] Durée de validité:', expiresInDays, 'jours');
+    
+    try {
+      const token = this.generateToken();
+      console.log('[TokenService] Token généré, longueur:', token.length);
+      
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+      console.log('[TokenService] Date d\'expiration:', expiresAt.toISOString());
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        api_token: token,
-        token_expires_at: expiresAt,
-      },
-    });
+      console.log('[TokenService] Mise à jour de l\'utilisateur dans la base de données...');
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          api_token: token,
+          token_expires_at: expiresAt,
+        },
+        select: {
+          id: true,
+          email: true,
+          api_token: true,
+          token_expires_at: true,
+        },
+      });
 
-    return token;
+      console.log('[TokenService] ✅ Utilisateur mis à jour avec succès');
+      console.log('[TokenService] Email:', updatedUser.email);
+      console.log('[TokenService] Token sauvegardé:', updatedUser.api_token ? 'Oui' : 'Non');
+      console.log('[TokenService] Date d\'expiration sauvegardée:', updatedUser.token_expires_at?.toISOString());
+
+      return token;
+    } catch (error: any) {
+      console.error('[TokenService] ❌ Erreur lors de la création du token');
+      console.error('[TokenService] Type d\'erreur:', error?.constructor?.name);
+      console.error('[TokenService] Code d\'erreur:', error?.code);
+      console.error('[TokenService] Message:', error?.message);
+      console.error('[TokenService] Stack:', error?.stack);
+      
+      // Vérifier si c'est une erreur de colonne manquante
+      if (error?.message?.includes('api_token') || error?.message?.includes('token_expires_at')) {
+        console.error('[TokenService] ❌ Les colonnes api_token ou token_expires_at n\'existent pas dans la base de données!');
+        console.error('[TokenService] Veuillez appliquer la migration: npx prisma migrate deploy');
+        throw new Error('Les colonnes de token API n\'existent pas dans la base de données. Veuillez appliquer les migrations.');
+      }
+      
+      throw error;
+    }
   }
 
   /**
