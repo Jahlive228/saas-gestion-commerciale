@@ -25,7 +25,9 @@ export async function GET(request: NextRequest) {
     };
 
     const authUser = sessionToAuthUser(session);
-    const tenantId = authUser.role === 'SUPERADMIN' ? filters.tenant_id : authUser.tenant_id;
+    const tenantId = authUser.role === 'SUPERADMIN' 
+      ? (filters.tenant_id || null) 
+      : authUser.tenant_id;
     const result = await SalesService.getSales(authUser, tenantId, filters);
 
     return NextResponse.json({
