@@ -68,8 +68,20 @@ export async function middleware(request: NextRequest) {
     const isAuthenticated = await SessionManager.isAuthenticated();
 
     // Si l'utilisateur est authentifié et tente d'accéder à une route publique
-    // Rediriger vers le dashboard
+    // Rediriger vers le dashboard approprié selon le rôle
     if (isAuthenticated && isPublicRoute) {
+      // Récupérer le rôle de l'utilisateur pour rediriger vers le bon dashboard
+      try {
+        const session = await SessionManager.getSession();
+        if (session?.jwtPayload?.role_name === 'SUPERADMIN') {
+          return NextResponse.redirect(new URL(routes.superadmin.home, request.url));
+        }
+        if (session?.jwtPayload?.role_name === 'DIRECTEUR') {
+          return NextResponse.redirect(new URL(routes.admin.home, request.url));
+        }
+      } catch (error) {
+        // En cas d'erreur, rediriger vers le dashboard par défaut
+      }
       return NextResponse.redirect(new URL(routes.dashboard.home, request.url));
     }
 

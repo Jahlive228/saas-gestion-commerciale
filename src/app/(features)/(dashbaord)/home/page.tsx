@@ -13,6 +13,11 @@ export default async function Dashboard() {
     redirect(routes.superadmin.home);
   }
 
+  // Rediriger le Directeur vers son dashboard dédié
+  if (role === Role.DIRECTEUR) {
+    redirect(routes.admin.home);
+  }
+
   // Afficher le dashboard selon le rôle
   return (
     <div className="space-y-6">
