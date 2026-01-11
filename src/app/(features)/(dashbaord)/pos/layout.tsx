@@ -3,7 +3,7 @@ import { requirePermission } from '@/server/permissions/require-permission';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { Role } from '@prisma/client';
 
-export default async function AppLayout({
+export default async function POSLayout({
   children,
 }: {
   children: React.ReactNode;

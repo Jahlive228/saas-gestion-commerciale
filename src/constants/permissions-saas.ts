@@ -142,9 +142,9 @@ export const ROUTE_PERMISSIONS: Record<string, PermissionCode[]> = {
   '/admin/sales': [PERMISSION_CODES.SALES_VIEW],
   '/admin/stats': [PERMISSION_CODES.STATS_VIEW_TENANT],
 
-  // App routes (Vendeur/Gérant)
-  '/app': [PERMISSION_CODES.SALES_CREATE],
-  '/app/sales': [PERMISSION_CODES.SALES_VIEW_OWN, PERMISSION_CODES.SALES_VIEW],
+  // POS routes (Point de Vente - Vendeur/Gérant)
+  '/pos': [PERMISSION_CODES.SALES_CREATE],
+  '/pos/sales': [PERMISSION_CODES.SALES_VIEW_OWN, PERMISSION_CODES.SALES_VIEW],
 
   // Dashboard routes
   '/admin/utilisateurs': [PERMISSION_CODES.USERS_VIEW],

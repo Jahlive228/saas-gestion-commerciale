@@ -74,7 +74,8 @@ const DynamicSidebar: React.FC = () => {
     async function loadMenu() {
       try {
         const menu = await getUserMenuAction();
-        setMenuItems(menu);
+        // S'assurer que menu est toujours un tableau
+        setMenuItems(Array.isArray(menu) ? menu : []);
       } catch (error) {
         console.error('Erreur lors du chargement du menu:', error);
         setMenuItems([]);
@@ -138,7 +139,13 @@ const DynamicSidebar: React.FC = () => {
   const renderMenuItems = (
     items: MenuItem[],
     menuType: "main" | "others"
-  ) => (
+  ) => {
+    // Protection contre items undefined ou null
+    if (!items || !Array.isArray(items)) {
+      return null;
+    }
+
+    return (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => {
         const IconComponent = iconMap[nav.icon || 'GridIcon'] || <GridIcon />;
@@ -241,7 +248,8 @@ const DynamicSidebar: React.FC = () => {
         );
       })}
     </ul>
-  );
+    );
+  };
 
   if (isLoading) {
     return (

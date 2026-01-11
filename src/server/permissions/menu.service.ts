@@ -147,13 +147,13 @@ export class MenuService {
       roleMenu.push(
         {
           name: 'Point de Vente',
-          path: '/app',
+          path: '/pos',
           icon: 'ShoppingCartIcon',
           permission: 'sales.create' as PermissionCode,
         },
         {
           name: 'Mes Ventes',
-          path: '/app/sales',
+          path: '/pos/sales',
           icon: 'ReceiptIcon',
           permission: ['sales.view_own', 'sales.view'] as PermissionCode[],
         }
@@ -165,13 +165,13 @@ export class MenuService {
       roleMenu.push(
         {
           name: 'Point de Vente',
-          path: '/app',
+          path: '/pos',
           icon: 'ShoppingCartIcon',
           permission: 'sales.create' as PermissionCode,
         },
         {
           name: 'Mes Ventes',
-          path: '/app/sales',
+          path: '/pos/sales',
           icon: 'ReceiptIcon',
           permission: 'sales.view_own' as PermissionCode,
         }

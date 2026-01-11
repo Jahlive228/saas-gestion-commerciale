@@ -20,7 +20,7 @@ export default async function Dashboard() {
 
   // Rediriger le Gérant et le Vendeur vers le POS
   if (role === Role.GERANT || role === Role.VENDEUR) {
-    redirect(routes.app.pos);
+    redirect(routes.pos.home);
   }
 
   // Afficher le dashboard selon le rôle
@@ -59,7 +59,7 @@ export default async function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {(role === Role.DIRECTEUR || role === Role.GERANT || role === Role.VENDEUR) && (
             <a
-              href={routes.app.pos}
+              href={routes.pos.home}
               className="flex flex-col items-center p-4 rounded-lg border border-gray-200 hover:border-brand-300 hover:bg-brand-50/50 transition-colors text-center"
             >
               <div className="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center mb-2">

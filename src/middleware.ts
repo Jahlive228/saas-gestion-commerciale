@@ -33,7 +33,7 @@ const privateRoutePrefixes = [
   '/admin',
   '/profile',
   '/superadmin',
-  '/app',
+  '/pos',
 ];
 
 export async function middleware(request: NextRequest) {
@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(new URL(routes.admin.home, request.url));
         }
         if (session?.jwtPayload?.role_name === 'GERANT' || session?.jwtPayload?.role_name === 'VENDEUR') {
-          return NextResponse.redirect(new URL(routes.app.pos, request.url));
+          return NextResponse.redirect(new URL(routes.pos.home, request.url));
         }
       } catch (error) {
         // En cas d'erreur, rediriger vers le dashboard par défaut

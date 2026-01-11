@@ -38,9 +38,9 @@ export const routes = {
     stats: '/admin/stats',
   },
 
-  app: {
-    pos: '/app',
-    sales: '/app/sales',
+  pos: {
+    home: '/pos',
+    sales: '/pos/sales',
   },
 } as const;
 
@@ -76,6 +76,10 @@ export const getPageTitle = (pathname: string): string => {
     '/sign-in': 'Connexion',
     '/forgot-password': 'Mot de passe oublié',
     '/reset-password': 'Réinitialiser le mot de passe',
+    
+    // POS
+    '/pos': 'Point de Vente',
+    '/pos/sales': 'Mes Ventes',
   };
 
   return titleMap[pathname] || 'GomboPay Admin';
