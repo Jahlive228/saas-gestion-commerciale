@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import type { AuthUser } from '@/server/auth/prisma-auth';

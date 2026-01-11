@@ -1,28 +1,12 @@
 import type { AuthUser } from './prisma-auth';
+import type { Session } from '@/models/auth';
 import { Role } from '@prisma/client';
 
 /**
- * Type de session retourné par requireAuth
- */
-type Session = {
-  user: {
-    id: string;
-    email: string;
-    first_name?: string;
-    last_name?: string;
-  };
-  jwtPayload: {
-    user_id: string;
-    email: string;
-    role_name: string;
-    tenant_id: string | null;
-    is_superadmin: boolean;
-    is_admin: boolean;
-  };
-};
-
-/**
  * Convertit une session en AuthUser pour les services
+ * 
+ * @param session - La session retournée par requireAuth()
+ * @returns Un objet AuthUser compatible avec les services backend
  */
 export function sessionToAuthUser(session: Session): AuthUser {
   return {

@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from '@/lib/prisma';
 import { TenantIsolation } from '@/server/middleware/tenant-isolation';
 import type { AuthUser } from '@/server/auth/prisma-auth';

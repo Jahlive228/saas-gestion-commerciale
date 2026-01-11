@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from '@/lib/prisma';
 import { requireSuperAdmin } from '@/server/auth/require-auth';
 import { TenantStatus } from '@prisma/client';

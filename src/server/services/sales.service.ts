@@ -1,4 +1,3 @@
-"use server";
 
 import { prisma } from '@/lib/prisma';
 import { TransactionType, SaleStatus, Role } from '@prisma/client';
