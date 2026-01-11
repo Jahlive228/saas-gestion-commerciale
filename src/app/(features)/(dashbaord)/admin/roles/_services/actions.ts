@@ -1,6 +1,7 @@
 "use server";
 
 import { api } from "@/server/interceptor/axios.interceptor";
+import { requireSuperAdmin } from '@/server/auth/require-auth';
 import type {
   GetAllRolesResponse,
   GetRoleDetailsResponse,
@@ -12,10 +13,14 @@ import type {
 
 /**
  * Récupère la liste de tous les rôles avec pagination et recherche
+ * Requiert : SUPERADMIN
  */
 export async function getAllRolesAction(
   filters: RoleFilters = {}
 ): Promise<ActionResult<GetAllRolesResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const { page = 1, limit = 10, search } = filters;
     const params = new URLSearchParams({
@@ -39,10 +44,14 @@ export async function getAllRolesAction(
 
 /**
  * Récupère les détails d'un rôle spécifique avec ses permissions
+ * Requiert : SUPERADMIN
  */
 export async function getRoleDetailsAction(
   roleId: string
 ): Promise<ActionResult<GetRoleDetailsResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const response = await api.get<GetRoleDetailsResponse>(
       `/users/get-detail-role/${roleId}/detail`
@@ -59,10 +68,14 @@ export async function getRoleDetailsAction(
 
 /**
  * Récupère la liste de toutes les permissions avec pagination et recherche
+ * Requiert : SUPERADMIN
  */
 export async function getAllPermissionsAction(
   filters: PermissionFilters = {}
 ): Promise<ActionResult<GetAllPermissionsResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const { page = 1, limit = 10, search } = filters;
     const params = new URLSearchParams({

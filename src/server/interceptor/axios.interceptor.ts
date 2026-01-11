@@ -56,7 +56,8 @@ api.interceptors.response.use(
           console.error('Erreur 401: Non autorisé');
           // Token invalide ou expiré - nettoyer la session
           try {
-            await destroySessionAction();
+            const { SessionManager } = await import('@/server/session');
+            await SessionManager.destroySession();
           } catch (sessionError) {
             console.warn('Erreur lors de la suppression de la session:', sessionError);
           }

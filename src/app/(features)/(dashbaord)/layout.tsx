@@ -7,7 +7,12 @@ import AppSidebar from "./_components/AppSidebar";
 import Backdrop from "./_components/Backdrop";
 import AppHeader from "./_components/AppHeader";
 
-export default function AdminLayout({
+/**
+ * Layout principal du dashboard
+ * Note: L'authentification est vérifiée dans les layouts enfants
+ * car ce layout est client-side pour gérer la sidebar
+ */
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;

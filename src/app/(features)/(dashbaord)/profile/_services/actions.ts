@@ -2,12 +2,17 @@
 
 import { revalidatePath } from 'next/cache';
 import { api } from '@/server/interceptor/axios.interceptor';
+import { requireAuth } from '@/server/auth/require-auth';
 import type { UpdateUserRequest, UpdatePasswordRequest, ActionResult, GetUserResponse } from './types';
 
 /**
  * Récupère les informations de l'utilisateur connecté
+ * Requiert : Authentification
  */
 export async function getCurrentUserAction(): Promise<ActionResult<GetUserResponse>> {
+  // Vérifier l'authentification
+  await requireAuth();
+  
   try {
     const response = await api.get<GetUserResponse>('/users/getme/');
     return { success: true, data: response.data };
@@ -20,8 +25,17 @@ export async function getCurrentUserAction(): Promise<ActionResult<GetUserRespon
 
 /**
  * Met à jour les informations du profil utilisateur
+ * Requiert : Authentification
  */
 export async function updateUserProfileAction(userData: UpdateUserRequest): Promise<ActionResult<GetUserResponse>> {
+  // Vérifier l'authentification
+  const session = await requireAuth();
+  
+  // Vérifier que l'utilisateur modifie son propre profil
+  if (session.user.id !== userData.id) {
+    return { success: false, error: 'Vous ne pouvez modifier que votre propre profil' };
+  }
+  
   try {
     const response = await api.put<GetUserResponse>(`/users/update-admin/${userData.id}/update`, userData);
     
@@ -39,8 +53,12 @@ export async function updateUserProfileAction(userData: UpdateUserRequest): Prom
 
 /**
  * Change le mot de passe de l'utilisateur
+ * Requiert : Authentification
  */
 export async function changePasswordAction(passwordData: UpdatePasswordRequest): Promise<ActionResult> {
+  // Vérifier l'authentification
+  await requireAuth();
+  
   try {
     await api.patch('/users/change-password/', passwordData);
     
@@ -57,9 +75,13 @@ export async function changePasswordAction(passwordData: UpdatePasswordRequest):
 
 /**
  * Upload une nouvelle photo de profil
+ * Requiert : Authentification
  */
 // TODO: Implémenter cet endpoint d'upload de fichier en backend
 export async function uploadProfilePictureAction(formData: FormData): Promise<ActionResult<{ picture: string }>> {
+  // Vérifier l'authentification
+  await requireAuth();
+  
   try {
     const response = await api.post<{ picture: string }>('/upload-file', formData, {
       headers: {

@@ -1,16 +1,8 @@
-import { redirect } from 'next/navigation';
-import { SessionManager } from '@/server/session';
-import { routes } from '@/config/routes';
+import { requireAdmin } from '@/server/auth/require-auth';
 
 export default async function AdminPage() {
-  const session = await SessionManager.getSession();
-  
-  if (!session) {
-    redirect(routes.auth.signin);
-  }
-
-  // TODO: Vérifier que l'utilisateur est DIRECTEUR
-  // Pour l'instant, on affiche juste une page de base
+  // Vérifie l'authentification et le rôle DIRECTEUR
+  const session = await requireAdmin();
 
   return (
     <div className="container mx-auto p-6">

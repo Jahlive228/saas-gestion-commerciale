@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { api } from '@/server/interceptor/axios.interceptor';
+import { requireSuperAdmin } from '@/server/auth/require-auth';
 import type { 
   GetAllAdminsResponse, 
   GetAdminResponse, 
@@ -16,8 +17,12 @@ import type {
 
 /**
  * Récupère la liste de tous les admins avec pagination et recherche
+ * Requiert : SUPERADMIN
  */
 export async function getAllAdminsAction(filters: AdminFilters = {}): Promise<ActionResult<GetAllAdminsResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const { page = 1, limit = 10, search } = filters;
     const params = new URLSearchParams({
@@ -37,8 +42,12 @@ export async function getAllAdminsAction(filters: AdminFilters = {}): Promise<Ac
 
 /**
  * Récupère les détails d'un admin spécifique
+ * Requiert : SUPERADMIN
  */
 export async function getAdminDetailsAction(adminId: string): Promise<ActionResult<GetAdminResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const response = await api.get<GetAdminResponse>(`/users/get-detail-admin/${adminId}/detail`);
     return { success: true, data: response.data };
@@ -51,8 +60,12 @@ export async function getAdminDetailsAction(adminId: string): Promise<ActionResu
 
 /**
  * Crée un nouvel admin
+ * Requiert : SUPERADMIN
  */
 export async function createAdminAction(adminData: CreateAdminRequest): Promise<ActionResult<CreateAdminResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const response = await api.post<CreateAdminResponse>('/users/create-admin/', adminData);
 
@@ -74,8 +87,12 @@ export async function createAdminAction(adminData: CreateAdminRequest): Promise<
 
 /**
  * Met à jour un admin existant
+ * Requiert : SUPERADMIN
  */
 export async function updateAdminAction(adminData: UpdateAdminRequest): Promise<ActionResult<GetAdminResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const response = await api.put<GetAdminResponse>(`/users/update-admin/${adminData.id}/update`, adminData);
     
@@ -92,8 +109,12 @@ export async function updateAdminAction(adminData: UpdateAdminRequest): Promise<
 
 /**
  * Supprime un admin
+ * Requiert : SUPERADMIN
  */
 export async function deleteAdminAction(adminId: string): Promise<ActionResult> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     await api.delete(`/users/delete-admin/${adminId}/delete`);
     
@@ -110,8 +131,12 @@ export async function deleteAdminAction(adminId: string): Promise<ActionResult> 
 
 /**
  * Récupère la liste de tous les rôles
+ * Requiert : SUPERADMIN
  */
 export async function getAllRolesAction(): Promise<ActionResult<GetAllRolesResponse>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const response = await api.get<GetAllRolesResponse>('/users/get-all-role/');
     return { success: true, data: response.data };
@@ -124,8 +149,12 @@ export async function getAllRolesAction(): Promise<ActionResult<GetAllRolesRespo
 
 /**
  * Active ou désactive un admin
+ * Requiert : SUPERADMIN
  */
 export async function toggleAdminStatusAction(adminId: string, isActive: boolean): Promise<ActionResult> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     const endpoint = isActive 
       ? `/users/activate-admin/${adminId}/activate`
@@ -146,8 +175,12 @@ export async function toggleAdminStatusAction(adminId: string, isActive: boolean
 
 /**
  * Récupère les statistiques des admins
+ * Requiert : SUPERADMIN
  */
 export async function getAdminStatsAction(): Promise<ActionResult<AdminStats>> {
+  // Vérifier l'authentification et le rôle SUPERADMIN
+  await requireSuperAdmin();
+  
   try {
     // TODO : Pour l'instant, on récupère la liste complète et on calcule les stats côté client
     // À améliorer avec un endpoint dédié aux stats

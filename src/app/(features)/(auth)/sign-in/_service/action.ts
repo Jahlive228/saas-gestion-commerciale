@@ -35,13 +35,11 @@ export async function loginAction(credentials: LoginRequest): Promise<ActionResu
 
 /**
  * Action pour déconnecter un utilisateur
+ * @deprecated Utiliser logoutAction de @/server/auth/logout à la place
  */
 export async function logoutAction(): Promise<ActionResult<void>> {
   try {
-    // Appel API de connexion
-    // await api.delete<LoginResponse>('/logout');
-
-    // Créer la session côté serveur
+    // Détruire la session
     await SessionManager.destroySession();
 
     // Revalider les pages qui dépendent de l'authentification

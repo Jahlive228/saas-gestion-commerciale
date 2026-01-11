@@ -30,6 +30,7 @@ export async function createPrismaSession(user: AuthUser): Promise<void> {
     is_client: false, // Pas utilisé dans ce projet
     role_id: user.role,
     role_name: user.role,
+    tenant_id: user.tenant_id, // Ajout du tenant_id pour l'isolation
     permissions: [], // À implémenter si nécessaire
   };
 

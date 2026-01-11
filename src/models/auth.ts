@@ -76,6 +76,7 @@ export interface JWTPayload {
   is_client: boolean;
   role_id: string;
   role_name: string;
+  tenant_id: string | null; // ID du tenant pour l'isolation multi-tenant
   permissions: string[];
 }
 

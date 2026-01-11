@@ -29,6 +29,8 @@ export class SessionManager {
 
   /**
    * Chiffre et stocke la session dans un cookie HTTP
+   * @deprecated Cette méthode utilise l'ancien format LoginResponse (API externe)
+   * Utiliser createPrismaSession de @/server/auth/session-prisma à la place
    */
   static async createSession(loginResponse: LoginResponse): Promise<void> {
     console.log('createSessionAction', loginResponse);

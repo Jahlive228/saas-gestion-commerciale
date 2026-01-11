@@ -1,17 +1,22 @@
 "use server";
 
-import { redirect } from 'next/navigation';
 import { SessionManager } from '@/server/session';
-import { routes } from '@/config/routes';
 import type { LoginResponse } from '@/models/auth';
 
+/**
+ * @deprecated Cette fonction utilise l'ancien système de session (API externe)
+ * Utiliser createPrismaSession de @/server/auth/session-prisma à la place
+ */
 export async function createSessionAction(loginResponse: LoginResponse) {
   await SessionManager.createSession(loginResponse);
 }
 
+/**
+ * @deprecated Utiliser logoutAction de @/server/auth/logout à la place
+ */
 export async function destroySessionAction() {
-  await SessionManager.destroySession();
-  redirect(routes.auth.signin);
+  const { logoutAction } = await import('@/server/auth/logout');
+  await logoutAction();
 }
 
 

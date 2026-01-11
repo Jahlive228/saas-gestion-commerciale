@@ -6,7 +6,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import AvatarText from "../ui/avatar/AvatarText";
 import { routes } from "@/config/routes";
-import { logoutAction } from "@/app/(features)/(auth)/sign-in/_service/action";
+import { logoutAction } from "@/server/auth/logout";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,11 +33,12 @@ export default function UserDropdown() {
       if (result.success) {
         toast.success('Déconnexion réussie');
         router.push(routes.auth.signin);
-      } else {
-        toast.error(result.error);
       }
-    } catch {
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
       toast.error('Erreur lors de la déconnexion');
+      // En cas d'erreur, rediriger manuellement
+      router.push(routes.auth.signin);
     } finally {
       setIsLoggingOut(false);
     }
