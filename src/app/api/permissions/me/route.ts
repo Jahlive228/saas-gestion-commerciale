@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/server/auth/require-auth';
+import { requireAuthAPI } from '@/server/auth/require-auth-api';
 import { PermissionService } from '@/server/permissions/permission.service';
-import { Role } from '@prisma/client';
 
 /**
  * GET /api/permissions/me
@@ -9,15 +8,14 @@ import { Role } from '@prisma/client';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth();
-    const role = session.jwtPayload.role_name as Role;
+    const authUser = await requireAuthAPI(request);
     
-    const permissions = await PermissionService.getRolePermissions(role);
+    const permissions = await PermissionService.getRolePermissions(authUser.role);
 
     return NextResponse.json({
       success: true,
       data: {
-        role,
+        role: authUser.role,
         permissions,
       },
     });

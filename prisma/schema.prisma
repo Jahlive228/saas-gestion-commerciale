@@ -81,6 +81,10 @@ model User {
   two_factor_enabled Boolean @default(false)
   two_factor_secret  String? // Secret TOTP
 
+  // API Token for Bearer authentication
+  api_token   String?  @unique // Token pour l'authentification Bearer
+  token_expires_at DateTime? // Date d'expiration du token
+
   // Tenant Relation (Optional for Superadmin)
   tenant_id String?
   tenant    Tenant? @relation(fields: [tenant_id], references: [id])
@@ -98,6 +102,7 @@ model User {
   @@index([role])
   @@index([email])
   @@index([is_active])
+  @@index([api_token])
 }
 
 // ==================== PERMISSIONS & ROLES ====================

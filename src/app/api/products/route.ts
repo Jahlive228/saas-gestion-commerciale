@@ -5,6 +5,8 @@ import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { ProductsService } from '@/server/services/products.service';
 import type { AuthUser } from '@/server/auth/prisma-auth';
 import { Role } from '@prisma/client';
+import { requireAuthAPI } from '@/server/auth/require-auth-api';
+import { requirePermissionAPI } from '@/server/permissions/require-permission-api';
 
 /**
  * Convertit une session en AuthUser pour les services
@@ -29,8 +31,8 @@ function sessionToAuthUser(session: Awaited<ReturnType<typeof requireAuth>>): Au
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth();
-    await requirePermission(PERMISSION_CODES.PRODUCTS_VIEW);
+    const authUser = await requireAuthAPI(request);
+    await requirePermissionAPI(authUser, PERMISSION_CODES.PRODUCTS_VIEW);
 
     const { searchParams } = new URL(request.url);
     const filters = {
@@ -42,7 +44,6 @@ export async function GET(request: NextRequest) {
       tenant_id: searchParams.get('tenant_id') || undefined,
     };
 
-    const authUser = sessionToAuthUser(session);
     const result = await ProductsService.getProducts(authUser, filters);
 
     return NextResponse.json({
@@ -68,11 +69,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAuth();
-    await requirePermission(PERMISSION_CODES.PRODUCTS_CREATE);
+    const authUser = await requireAuthAPI(request);
+    await requirePermissionAPI(authUser, PERMISSION_CODES.PRODUCTS_CREATE);
 
     const body = await request.json();
-    const authUser = sessionToAuthUser(session);
     const result = await ProductsService.createProduct(authUser, body);
 
     if (!result.success) {

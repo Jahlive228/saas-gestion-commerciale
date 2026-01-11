@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/server/auth/require-auth';
-import { requirePermission } from '@/server/permissions/require-permission';
+import { requireAuthAPI } from '@/server/auth/require-auth-api';
+import { requirePermissionAPI } from '@/server/permissions/require-permission-api';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { StockService } from '@/server/services/stock.service';
-import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
 
 /**
  * GET /api/stock
@@ -12,8 +11,8 @@ import { sessionToAuthUser } from '@/server/auth/session-to-auth-user';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth();
-    await requirePermission(PERMISSION_CODES.STOCK_HISTORY_VIEW);
+    const authUser = await requireAuthAPI(request);
+    await requirePermissionAPI(authUser, PERMISSION_CODES.STOCK_HISTORY_VIEW);
 
     const { searchParams } = new URL(request.url);
     const filters = {
@@ -25,7 +24,6 @@ export async function GET(request: NextRequest) {
       endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
     };
 
-    const authUser = sessionToAuthUser(session);
     const result = await StockService.getStockHistory(authUser, filters);
 
     return NextResponse.json({

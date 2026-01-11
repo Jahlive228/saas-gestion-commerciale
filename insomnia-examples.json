@@ -1,0 +1,180 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-01-15T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "req_products_list",
+      "parentId": "fld_products",
+      "modified": 1705276800000,
+      "created": 1705276800000,
+      "url": "{{ _.base_url }}/api/products?page=1&limit=10",
+      "name": "GET - Liste des produits",
+      "description": "Récupère la liste des produits avec pagination",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_page",
+          "name": "page",
+          "value": "1"
+        },
+        {
+          "id": "pair_limit",
+          "name": "limit",
+          "value": "10"
+        }
+      ],
+      "headers": [
+        {
+          "name": "Cookie",
+          "value": "saas-session={{ _.cookie }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1705276800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_products_create",
+      "parentId": "fld_products",
+      "modified": 1705276800000,
+      "created": 1705276800000,
+      "url": "{{ _.base_url }}/api/products",
+      "name": "POST - Créer un produit",
+      "description": "Crée un nouveau produit",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Smartphone iPhone 15\",\n  \"sku\": \"IPH-001\",\n  \"description\": \"Smartphone Apple iPhone 15 Pro Max\",\n  \"price\": 1299.99,\n  \"cost_price\": 900.00,\n  \"stock_qty\": 20,\n  \"min_stock\": 5,\n  \"unit\": \"PIECE\",\n  \"category_id\": \"clx9012345678901234567890\",\n  \"tenant_id\": \"clx2345678901234567890123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Cookie",
+          "value": "saas-session={{ _.cookie }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1705276800001,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_sales_create",
+      "parentId": "fld_sales",
+      "modified": 1705276800000,
+      "created": 1705276800000,
+      "url": "{{ _.base_url }}/api/sales",
+      "name": "POST - Créer une vente (POS)",
+      "description": "Crée une nouvelle vente avec déduction automatique du stock",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"items\": [\n    {\n      \"product_id\": \"clx2345678901234567890123\",\n      \"quantity\": 2\n    },\n    {\n      \"product_id\": \"clx3456789012345678901234\",\n      \"quantity\": 1\n    }\n  ],\n  \"tenant_id\": \"clx2345678901234567890123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Cookie",
+          "value": "saas-session={{ _.cookie }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1705276800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_stock_restock",
+      "parentId": "fld_stock",
+      "modified": 1705276800000,
+      "created": 1705276800000,
+      "url": "{{ _.base_url }}/api/stock/restock",
+      "name": "POST - Réapprovisionner le stock",
+      "description": "Réapprovisionne le stock d'un produit",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"product_id\": \"clx2345678901234567890123\",\n  \"quantity\": 50,\n  \"reason\": \"Livraison fournisseur\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Cookie",
+          "value": "saas-session={{ _.cookie }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1705276800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_permissions_me",
+      "parentId": "fld_permissions",
+      "modified": 1705276800000,
+      "created": 1705276800000,
+      "url": "{{ _.base_url }}/api/permissions/me",
+      "name": "GET - Mes permissions",
+      "description": "Récupère les permissions de l'utilisateur connecté",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Cookie",
+          "value": "saas-session={{ _.cookie }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1705276800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    }
+  ]
+}
