@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import DataTable from "@/components/common/DataTable";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import {
   ArrowUpIcon,
@@ -263,8 +263,8 @@ export default function StockPage() {
             </div>
           ) : activeTab === "inventory" ? (
             <DataTable
-              data={stockItems}
-              columns={columns}
+              data={stockItems as unknown as Record<string, unknown>[]}
+              columns={columns as unknown as Column<Record<string, unknown>>[]}
               loading={isLoading}
               emptyMessage="Aucun produit en stock"
             />
