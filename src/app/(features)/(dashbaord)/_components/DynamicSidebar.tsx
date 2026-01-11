@@ -249,14 +249,14 @@ const DynamicSidebar: React.FC = () => {
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <Image
-              src="/images/logo/logo.svg"
+              src="/images/logo/logo_saas.png"
               alt="Logo"
               width={150}
               height={150}
             />
           ) : (
             <Image
-              src="/images/logo/logo.svg"
+              src="/images/logo/logo_saas.png"
               alt="Logo"
               width={60}
               height={60}
