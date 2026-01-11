@@ -79,9 +79,6 @@ export class TenantIsolation {
           error: 'Tenant introuvable',
         };
       }
-
-      // Ici on pourrait ajouter une vérification du statut du tenant
-      // if (tenant.status !== 'ACTIVE') { ... }
     }
 
     return { valid: true };
