@@ -108,11 +108,6 @@ export default function SalesPage() {
             <p className="font-semibold text-gray-900">
               {formatCurrency(sale.total_amount)}
             </p>
-            {sale.discount_amount > 0 && (
-              <p className="text-xs text-success-600">
-                -{formatCurrency(sale.discount_amount)} remise
-              </p>
-            )}
           </div>
         );
       },
@@ -133,12 +128,12 @@ export default function SalesPage() {
       },
     },
     {
-      key: "user",
+      key: "seller",
       title: "Vendeur",
       render: (_: unknown, record: Record<string, unknown>) => {
         const sale = record as unknown as Sale;
         const fullName =
-          `${sale.user?.first_name || ""} ${sale.user?.last_name || ""}`.trim() ||
+          `${sale.seller?.first_name || ""} ${sale.seller?.last_name || ""}`.trim() ||
           "Inconnu";
         return <span className="text-sm text-gray-600">{fullName}</span>;
       },
@@ -204,7 +199,7 @@ export default function SalesPage() {
           <p className="text-2xl font-bold text-gray-900 mt-1">{sales.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Chiffre d'Affaires</p>
+          <p className="text-sm text-gray-500">Chiffre d&apos;Affaires</p>
           <p className="text-2xl font-bold text-brand-600 mt-1">
             {formatCurrency(totalRevenue)}
           </p>

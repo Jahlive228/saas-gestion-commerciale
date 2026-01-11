@@ -10,12 +10,9 @@ export interface Sale {
   id: string;
   reference: string;
   total_amount: number;
-  discount_amount: number;
-  tax_amount: number;
   status: SaleStatus;
-  payment_method: string | null;
   items_count: number;
-  user: {
+  seller: {
     id: string;
     first_name: string | null;
     last_name: string | null;
@@ -46,7 +43,7 @@ export async function getSalesAction(): Promise<{
     const sales = await prisma.sale.findMany({
       where: whereClause,
       include: {
-        user: {
+        seller: {
           select: {
             id: true,
             first_name: true,
@@ -74,12 +71,9 @@ export async function getSalesAction(): Promise<{
         id: s.id,
         reference: s.reference,
         total_amount: Number(s.total_amount),
-        discount_amount: Number(s.discount_amount),
-        tax_amount: Number(s.tax_amount),
         status: s.status,
-        payment_method: s.payment_method,
         items_count: s._count.items,
-        user: s.user,
+        seller: s.seller,
         tenant: s.tenant,
         created_at: s.created_at,
       })),
