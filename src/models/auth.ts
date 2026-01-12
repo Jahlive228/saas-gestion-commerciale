@@ -78,6 +78,8 @@ export interface JWTPayload {
   role_name: string;
   tenant_id: string | null; // ID du tenant pour l'isolation multi-tenant
   permissions: string[];
+  two_factor_enabled?: boolean; // Flag indiquant si le 2FA est activé pour cet utilisateur
+  two_factor_verified?: boolean; // Flag indiquant si le 2FA a été vérifié dans cette session
 }
 
 export interface LoginRequest {

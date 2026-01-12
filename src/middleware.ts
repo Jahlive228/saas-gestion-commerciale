@@ -8,7 +8,6 @@ const publicRoutes = [
   routes.auth.signin,
   routes.auth.forgotPassword,
   routes.auth.resetPassword,
-  '/verify-2fa', // Page de vérification 2FA
 ];
 
 // Routes privées qui nécessitent une authentification
@@ -37,6 +36,8 @@ const privateRoutePrefixes = [
   '/pos',
   '/warehouse',
   '/catalog',
+  '/settings', // Routes de paramètres (y compris /settings/2fa)
+  '/verify-2fa', // Route de vérification 2FA (nécessite une session)
 ];
 
 export async function middleware(request: NextRequest) {
@@ -119,34 +120,47 @@ export async function middleware(request: NextRequest) {
     if (isAuthenticated && isPrivateRoute) {
       try {
         const session = await SessionManager.getSession();
-        const role = session?.jwtPayload?.role_name;
+        if (!session) {
+          return NextResponse.redirect(new URL(routes.auth.signin, request.url));
+        }
+
+        const role = session.jwtPayload?.role_name;
+        const userId = session.jwtPayload?.user_id;
         
         // Ignorer la vérification 2FA pour les routes de configuration 2FA et de vérification
         if (pathname === '/settings/2fa' || pathname === '/verify-2fa') {
           return NextResponse.next();
         }
 
-        // Vérifier si le 2FA est obligatoire pour ce rôle
-        const { is2FARequiredForRole } = await import('@/server/auth/require-2fa');
-        const { TwoFactorService } = await import('@/server/auth/2fa.service');
+        // Fonction pure pour vérifier si le 2FA est obligatoire (pas de dépendances Node.js)
+        const is2FARequiredForRole = (role: string): boolean => {
+          return role === 'SUPERADMIN' || role === 'DIRECTEUR';
+        };
         
-        if (is2FARequiredForRole(role)) {
-          const userId = session.jwtPayload.user_id;
-          const is2FAEnabled = await TwoFactorService.is2FAEnabled(userId);
+        if (role && is2FARequiredForRole(role)) {
+          // Utiliser les valeurs du JWT au lieu d'appeler Prisma (Edge Runtime compatible)
+          const is2FAEnabled = session.jwtPayload.two_factor_enabled === true;
+          const is2FAVerified = session.jwtPayload.two_factor_verified === true;
           
           // Si le 2FA est obligatoire mais non activé, rediriger vers l'activation
           if (!is2FAEnabled) {
+            console.log(`[Middleware] 2FA obligatoire mais non activé pour ${role}, redirection vers /settings/2fa`);
             return NextResponse.redirect(new URL('/settings/2fa', request.url));
+          }
+          
+          // Si le 2FA est activé mais non vérifié dans cette session, rediriger vers la vérification
+          if (is2FAEnabled && !is2FAVerified) {
+            console.log(`[Middleware] 2FA activé mais non vérifié pour ${role}, redirection vers /verify-2fa`);
+            return NextResponse.redirect(new URL('/verify-2fa', request.url));
           }
         }
         
-        // Si un MAGASINIER accède à /warehouse ou /catalog, le laisser passer
-        if (role === 'MAGASINIER' && (pathname === routes.warehouse.home || pathname === routes.warehouse.products)) {
-          return NextResponse.next();
-        }
+        // Si toutes les vérifications passent, laisser passer
+        return NextResponse.next();
       } catch (error) {
-        // En cas d'erreur, continuer
+        // En cas d'erreur, rediriger vers la connexion pour sécurité
         console.error('[Middleware] Erreur lors de la vérification 2FA:', error);
+        return NextResponse.redirect(new URL(routes.auth.signin, request.url));
       }
     }
 

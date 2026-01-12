@@ -198,6 +198,26 @@ export class SessionManager {
   }
 
   /**
+   * Met à jour le JWT payload avec de nouvelles données (ex: two_factor_verified)
+   */
+  static async updateJWTPayload(updates: Partial<JWTPayload>): Promise<void> {
+    const currentSession = await SessionManager.getSession();
+    
+    if (!currentSession) {
+      throw new Error('Aucune session active trouvée');
+    }
+
+    const updatedJWTPayload: JWTPayload = {
+      ...currentSession.jwtPayload,
+      ...updates,
+    };
+
+    await SessionManager.updateSession({
+      jwtPayload: updatedJWTPayload,
+    });
+  }
+
+  /**
    * Détruit la session (logout)
    */
   static async destroySession(): Promise<void> {

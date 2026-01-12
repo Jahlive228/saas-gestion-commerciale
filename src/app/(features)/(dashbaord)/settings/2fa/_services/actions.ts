@@ -8,6 +8,7 @@ import { TwoFactorService } from '@/server/auth/2fa.service';
 import { requireAuth } from '@/server/auth/require-auth';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { SessionManager } from '@/server/session';
 
 type ActionResult<T = void> = 
   | { success: true; data: T }
@@ -97,6 +98,11 @@ export async function verifyAndEnable2FAAction(
     // Activer le 2FA
     await TwoFactorService.enable2FA(userId, secret, recoveryCodes);
 
+    // Mettre à jour le JWT avec two_factor_enabled: true
+    await SessionManager.updateJWTPayload({
+      two_factor_enabled: true,
+    });
+
     // Supprimer l'activation temporaire
     await prisma.twoFactorActivation.delete({
       where: { user_id: userId },
@@ -125,6 +131,12 @@ export async function disable2FAAction(): Promise<ActionResult> {
     const userId = session.user.id;
 
     await TwoFactorService.disable2FA(userId);
+
+    // Mettre à jour le JWT avec two_factor_enabled: false
+    await SessionManager.updateJWTPayload({
+      two_factor_enabled: false,
+      two_factor_verified: false, // Réinitialiser aussi la vérification
+    });
 
     revalidatePath('/settings/2fa');
 

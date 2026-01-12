@@ -83,11 +83,10 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Marquer la session comme vérifiée 2FA
-        // On peut utiliser un flag dans le JWT ou dans la session
-        // Pour l'instant, on met à jour le JWT avec un flag 2FA vérifié
-        // Note: Dans une vraie implémentation, on devrait mettre à jour le JWT avec un nouveau token
-        // qui inclut le flag 2fa_verified
+        // Marquer la session comme vérifiée 2FA en mettant à jour le JWT payload
+        await SessionManager.updateJWTPayload({
+          two_factor_verified: true,
+        });
 
         return NextResponse.json({
           success: true,

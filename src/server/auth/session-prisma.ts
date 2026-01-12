@@ -10,8 +10,10 @@ const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 jours
 
 /**
  * Crée une session à partir d'un utilisateur Prisma
+ * @param user - Utilisateur Prisma
+ * @param twoFactorVerified - Indique si le 2FA a été vérifié (par défaut: false)
  */
-export async function createPrismaSession(user: AuthUser): Promise<void> {
+export async function createPrismaSession(user: AuthUser, twoFactorVerified: boolean = false): Promise<void> {
   if (!process.env.SESSION_SECRET) {
     console.error('[createPrismaSession] SESSION_SECRET non défini');
     throw new Error('SESSION_SECRET environment variable is not set');
@@ -32,6 +34,8 @@ export async function createPrismaSession(user: AuthUser): Promise<void> {
     role_name: user.role,
     tenant_id: user.tenant_id, // Ajout du tenant_id pour l'isolation
     permissions: [], // À implémenter si nécessaire
+    two_factor_enabled: user.two_factor_enabled, // Stocker l'état du 2FA dans le JWT
+    two_factor_verified: twoFactorVerified,
   };
 
   // Créer le token JWT
