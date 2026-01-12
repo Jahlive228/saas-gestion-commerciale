@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getProductsAction, type Product } from "./_services/actions";
 import { CanAccess } from "@/components/permissions/CanAccess";
 import { PERMISSION_CODES } from "@/constants/permissions-saas";
+import ProductModal from "./_components/ProductModal";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const loadProducts = async () => {
     setIsLoading(true);
@@ -32,6 +35,25 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const handleCreateProduct = useCallback(() => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleEditProduct = useCallback((product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingProduct(null);
+  }, []);
+
+  const handleModalSuccess = useCallback(() => {
     loadProducts();
   }, []);
 
@@ -131,7 +153,10 @@ export default function ProductsPage() {
           </p>
         </div>
         <CanAccess permission={PERMISSION_CODES.PRODUCTS_CREATE}>
-          <Button className="flex items-center gap-2">
+          <Button 
+            onClick={handleCreateProduct}
+            className="flex items-center gap-2"
+          >
             <PlusIcon className="w-5 h-5" />
             Nouveau Produit
           </Button>
@@ -186,6 +211,14 @@ export default function ProductsPage() {
           )}
         </div>
       </div>
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        product={editingProduct}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }
