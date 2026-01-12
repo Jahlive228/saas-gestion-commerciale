@@ -41,6 +41,7 @@ export const routes = {
     stock: '/admin/stock',
     sales: '/admin/sales',
     stats: '/admin/stats',
+    subscription: '/admin/subscription',
   },
 
   pos: {
@@ -94,6 +95,9 @@ export const getPageTitle = (pathname: string): string => {
     // Warehouse (MAGASINIER)
     '/warehouse': 'Gestion des Stocks',
     '/catalog': 'Catalogue Produits',
+    
+    // Subscription
+    '/admin/subscription': 'Abonnement',
   };
 
   return titleMap[pathname] || 'Sass';

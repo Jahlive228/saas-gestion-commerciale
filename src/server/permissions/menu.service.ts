@@ -138,6 +138,12 @@ export class MenuService {
           path: '/admin/stats',
           icon: 'ChartIcon',
           permission: 'stats.view_tenant' as PermissionCode,
+        },
+        {
+          name: 'Abonnement',
+          path: '/admin/subscription',
+          icon: 'CreditCardIcon',
+          permission: 'tenants.update' as PermissionCode, // Les directeurs peuvent gérer leur abonnement
         }
       );
     }

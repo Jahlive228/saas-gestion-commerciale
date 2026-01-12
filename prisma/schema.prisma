@@ -46,6 +46,14 @@ enum TransactionType {
   RETURN // Retour client
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+  TRIALING
+}
+
 // ==================== CORE MODELS ====================
 
 model Tenant {
@@ -59,10 +67,11 @@ model Tenant {
   updated_at DateTime     @updatedAt
 
   // Relations
-  users      User[]
-  products   Product[]
-  sales      Sale[]
-  categories Category[]
+  users        User[]
+  products     Product[]
+  sales        Sale[]
+  categories   Category[]
+  subscription Subscription? // Un tenant peut avoir un abonnement
 
   @@index([status])
   @@index([slug])
@@ -83,7 +92,7 @@ model User {
   recovery_codes     String? // JSON array of recovery codes: [{"code": "hash", "used": false}]
 
   // API Token for Bearer authentication
-  api_token   String?  @unique // Token pour l'authentification Bearer
+  api_token        String?   @unique // Token pour l'authentification Bearer
   token_expires_at DateTime? // Date d'expiration du token
 
   // Tenant Relation (Optional for Superadmin)
@@ -236,12 +245,46 @@ model SaleItem {
 
 // Table temporaire pour stocker les codes de récupération 2FA en clair pendant l'activation
 model TwoFactorActivation {
-  id            String   @id @default(cuid())
-  user_id       String   @unique
-  secret        String
-  recovery_codes_plain String // JSON array des codes en clair
+  id                    String   @id @default(cuid())
+  user_id               String   @unique
+  secret                String
+  recovery_codes_plain  String // JSON array des codes en clair
   recovery_codes_hashed String // JSON array des codes hashés
-  created_at    DateTime @default(now())
+  created_at            DateTime @default(now())
 
   @@index([user_id])
+}
+
+// ==================== SUBSCRIPTIONS ====================
+
+model Subscription {
+  id        String @id @default(cuid())
+  tenant_id String @unique
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  // Plan d'abonnement
+  plan_id    String // Identifiant du plan (BASIC, PRO, ENTERPRISE)
+  plan_name  String // Nom du plan (ex: "Plan Pro")
+  plan_price Decimal @db.Decimal(10, 2) // Prix mensuel
+
+  // Statut et dates
+  status               SubscriptionStatus @default(TRIALING)
+  current_period_start DateTime
+  current_period_end   DateTime
+  cancel_at_period_end Boolean            @default(false) // Annulation à la fin de la période
+
+  // Stripe
+  stripe_subscription_id String? @unique // ID de l'abonnement Stripe
+  stripe_customer_id     String? @unique // ID du client Stripe
+  stripe_price_id        String? // ID du prix Stripe
+
+  // Historique
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  cancelled_at DateTime? // Date d'annulation
+
+  @@index([tenant_id])
+  @@index([status])
+  @@index([stripe_subscription_id])
+  @@index([stripe_customer_id])
 }
