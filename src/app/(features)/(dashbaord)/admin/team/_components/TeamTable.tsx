@@ -10,7 +10,7 @@ import type { TeamMember } from '../_services/types';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import TeamMemberModal from './TeamMemberModal';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import { CanAccess } from '@/components/permissions/CanAccess';
+import { ProtectedButton } from '@/components/permissions/ProtectedButton';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 
 interface TeamTableProps {
@@ -149,14 +149,13 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
               Gérez les membres de votre équipe
             </p>
           </div>
-          <CanAccess permission={PERMISSION_CODES.USERS_CREATE}>
-            <Button
-              onClick={handleCreateMember}
-              className="bg-brand-500 hover:bg-brand-600 text-white"
-            >
-              Ajouter un membre
-            </Button>
-          </CanAccess>
+          <ProtectedButton
+            permission={PERMISSION_CODES.USERS_CREATE}
+            onClick={handleCreateMember}
+            className="bg-brand-500 hover:bg-brand-600 text-white"
+          >
+            Ajouter un membre
+          </ProtectedButton>
         </div>
 
         {/* Search Input */}
