@@ -5,8 +5,6 @@
  * par IP, utilisateur ou combinaison des deux.
  */
 
-"use server";
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getRedisClient, isRedisAvailable } from '@/lib/redis';
 import { getRateLimitConfig, applyRoleMultiplier, type RateLimitConfig } from '@/config/rate-limit';
