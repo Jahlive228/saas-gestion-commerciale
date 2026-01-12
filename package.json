@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed:permissions": "tsx prisma/seed-permissions.ts",
-    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-permissions.ts"
+    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-permissions.ts",
+    "test:redis": "tsx src/lib/redis-test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -31,6 +32,7 @@
     "bcryptjs": "^2.4.3",
     "flatpickr": "^4.6.13",
     "framer-motion": "^12.25.0",
+    "ioredis": "^5.9.1",
     "jose": "^6.0.12",
     "next": "15.2.3",
     "pg": "^8.16.3",
@@ -50,6 +52,7 @@
     "@svgr/webpack": "^8.1.0",
     "@tanstack/eslint-plugin-query": "^5.83.1",
     "@types/bcryptjs": "^2.4.6",
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
