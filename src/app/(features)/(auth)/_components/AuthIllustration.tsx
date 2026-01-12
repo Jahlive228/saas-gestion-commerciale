@@ -137,7 +137,7 @@ export default function AuthIllustration() {
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
       >
         <motion.div
-          whileHover={{ scale: 1.05, rotate: [0, -2, 2, 0] }}
+          whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
           <Link href="/" className="block">
