@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "react-hot-toast";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import PasswordInput from "@/components/form/input/PasswordInput";
@@ -11,21 +12,43 @@ import Label from "@/components/form/Label";
 import { Modal } from "@/components/ui/modal/index";
 import { useTeamRoles, useCreateTeamMember, useUpdateTeamMember } from "../_services/queries";
 import type { TeamMember } from "../_services/types";
+import { getActionErrorMessage, ErrorMessages } from "@/utils/error-messages";
 
 // Schémas de validation
 const createMemberSchema = z.object({
-  email: z.string().email("Email invalide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
-  first_name: z.string().min(1, "Le prénom est requis"),
-  last_name: z.string().min(1, "Le nom est requis"),
+  email: z
+    .string({ required_error: "L'email est obligatoire." })
+    .min(1, "L'email est obligatoire.")
+    .email("Format d'email invalide. Exemple : utilisateur@exemple.com"),
+  password: z
+    .string({ required_error: "Le mot de passe est obligatoire." })
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères.")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre."
+    ),
+  first_name: z
+    .string({ required_error: "Le prénom est obligatoire." })
+    .min(1, "Le prénom est obligatoire.")
+    .min(2, "Le prénom doit contenir au moins 2 caractères."),
+  last_name: z
+    .string({ required_error: "Le nom est obligatoire." })
+    .min(1, "Le nom est obligatoire.")
+    .min(2, "Le nom doit contenir au moins 2 caractères."),
   role_id: z.enum(['GERANT', 'VENDEUR', 'MAGASINIER'], {
-    errorMap: () => ({ message: "Le rôle est requis" }),
+    errorMap: () => ({ message: "Veuillez sélectionner un rôle pour cet utilisateur." }),
   }),
 });
 
 const updateMemberSchema = z.object({
-  first_name: z.string().min(1, "Le prénom est requis"),
-  last_name: z.string().min(1, "Le nom est requis"),
+  first_name: z
+    .string({ required_error: "Le prénom est obligatoire." })
+    .min(1, "Le prénom est obligatoire.")
+    .min(2, "Le prénom doit contenir au moins 2 caractères."),
+  last_name: z
+    .string({ required_error: "Le nom est obligatoire." })
+    .min(1, "Le nom est obligatoire.")
+    .min(2, "Le nom doit contenir au moins 2 caractères."),
   role_id: z.enum(['GERANT', 'VENDEUR', 'MAGASINIER']).optional(),
 });
 
@@ -83,11 +106,16 @@ export default function TeamMemberModal({
     try {
       const result = await createMemberMutation.mutateAsync(data);
       if (result.success) {
+        toast.success(`Membre "${data.first_name} ${data.last_name}" créé avec succès`);
         onClose();
         if (onSuccess) onSuccess();
+      } else {
+        toast.error(getActionErrorMessage(result, "la création du membre"));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la création:", error);
+      const errorMessage = error?.message || ErrorMessages.genericError("la création du membre");
+      toast.error(errorMessage);
     }
   };
 
@@ -100,11 +128,16 @@ export default function TeamMemberModal({
         data,
       });
       if (result.success) {
+        toast.success(`Membre "${data.first_name} ${data.last_name}" mis à jour avec succès`);
         onClose();
         if (onSuccess) onSuccess();
+      } else {
+        toast.error(getActionErrorMessage(result, "la mise à jour du membre"));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la mise à jour:", error);
+      const errorMessage = error?.message || ErrorMessages.genericError("la mise à jour du membre");
+      toast.error(errorMessage);
     }
   };
 

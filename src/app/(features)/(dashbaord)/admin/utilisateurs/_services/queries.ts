@@ -111,7 +111,7 @@ export function useCreateAdmin() {
     },
     onError: (error: any) => {
       console.log("error create admin hook", error);
-      const message = error?.message || "Erreur lors de la création de l'admin";
+      const message = error?.message || "Une erreur est survenue lors de la création de l'administrateur. Veuillez vérifier les informations saisies et réessayer.";
       toast.error(message);
     },
   });
@@ -142,7 +142,7 @@ export function useUpdateAdmin() {
     },
     onError: (error: any) => {
       const message =
-        error?.message || "Erreur lors de la mise à jour de l'admin";
+        error?.message || "Une erreur est survenue lors de la mise à jour de l'administrateur. Veuillez réessayer.";
       toast.error(message);
     },
   });

@@ -51,12 +51,14 @@ export default function SignInForm() {
         }, 500);
       } else {
         console.error('[SignInForm] Erreur de connexion:', result.error);
-        toast.error(result.error || 'Erreur de connexion');
+        const errorMessage = result.error || 'Identifiants incorrects. Vérifiez votre email et votre mot de passe.';
+        toast.error(errorMessage);
       }
     } catch (error: any) {
       console.error('[SignInForm] Exception lors de la connexion:', error);
       console.error('[SignInForm] Stack:', error?.stack);
-      toast.error(error?.message || 'Erreur de connexion. Vérifiez vos identifiants.');
+      const errorMessage = error?.message || 'Erreur de connexion. Vérifiez vos identifiants et votre connexion internet.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

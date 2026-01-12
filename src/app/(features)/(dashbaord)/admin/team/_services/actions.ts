@@ -223,7 +223,10 @@ export async function createTeamMemberAction(data: {
     });
 
     if (existingUser) {
-      return { success: false, error: 'Un utilisateur avec cet email existe déjà' };
+      return { 
+        success: false, 
+        error: `L'email "${data.email}" est déjà utilisé. Veuillez en choisir un autre.` 
+      };
     }
 
     // Vérifier que le rôle est valide (GERANT, VENDEUR, ou MAGASINIER)
@@ -307,7 +310,10 @@ export async function updateTeamMemberAction(
     });
 
     if (!existingMember) {
-      return { success: false, error: 'Membre introuvable' };
+      return { 
+        success: false, 
+        error: 'Membre introuvable. Il a peut-être été supprimé ou n\'existe pas.' 
+      };
     }
 
     // Si un nouveau rôle est fourni, vérifier qu'il est valide
@@ -383,7 +389,10 @@ export async function toggleTeamMemberStatusAction(
     });
 
     if (!existingMember) {
-      return { success: false, error: 'Membre introuvable' };
+      return { 
+        success: false, 
+        error: 'Membre introuvable. Il a peut-être été supprimé ou n\'existe pas.' 
+      };
     }
 
     await prisma.user.update({
@@ -431,7 +440,10 @@ export async function deleteTeamMemberAction(memberId: string): Promise<ActionRe
     });
 
     if (!existingMember) {
-      return { success: false, error: 'Membre introuvable' };
+      return { 
+        success: false, 
+        error: 'Membre introuvable. Il a peut-être été supprimé ou n\'existe pas.' 
+      };
     }
 
     await prisma.user.delete({

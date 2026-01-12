@@ -186,7 +186,9 @@ export default function TenantModal({
               </label>
               <input
                 type="text"
-                {...register('name', { required: 'Le nom est requis' })}
+                {...register('name', { 
+                  required: 'Le nom du commerce est obligatoire.' 
+                })}
                 className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                   errors.name ? 'border-error-500' : 'border-gray-300'
                 }`}
@@ -206,10 +208,10 @@ export default function TenantModal({
                 <input
                   type="text"
                   {...register('slug', {
-                    required: 'Le slug est requis',
+                    required: 'L\'identifiant unique est obligatoire.',
                     pattern: {
                       value: /^[a-z0-9-]+$/,
-                      message: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets',
+                      message: 'L\'identifiant ne peut contenir que des lettres minuscules, chiffres et tirets. Exemple : mon-identifiant-123',
                     },
                   })}
                   className={`w-full px-4 py-2.5 pr-10 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
@@ -255,7 +257,7 @@ export default function TenantModal({
                 {...register('email', {
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email invalide',
+                    message: 'Format d\'email invalide. Exemple : utilisateur@exemple.com',
                   },
                 })}
                 className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${

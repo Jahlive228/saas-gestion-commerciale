@@ -4,57 +4,58 @@ import { z } from 'zod';
 export const createAdminSchema = z.object({
   email: z
     .string()
-    .min(1, 'L\'email est requis')
-    .email('Format d\'email invalide'),
+    .min(1, 'L\'email est obligatoire.')
+    .email('Format d\'email invalide. Exemple : utilisateur@exemple.com'),
   password: z
     .string()
-    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .min(1, 'Le mot de passe est obligatoire.')
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
-      'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
+      'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.'),
   first_name: z
     .string()
-    .min(1, 'Le prénom est requis')
-    .min(2, 'Le prénom doit contenir au moins 2 caractères')
-    .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+    .min(1, 'Le prénom est obligatoire.')
+    .min(2, 'Le prénom doit contenir au moins 2 caractères.')
+    .max(50, 'Le prénom ne peut pas dépasser 50 caractères.'),
   last_name: z
     .string()
-    .min(1, 'Le nom est requis')
-    .min(2, 'Le nom doit contenir au moins 2 caractères')
-    .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+    .min(1, 'Le nom est obligatoire.')
+    .min(2, 'Le nom doit contenir au moins 2 caractères.')
+    .max(50, 'Le nom ne peut pas dépasser 50 caractères.'),
   country_code: z
     .string()
-    .min(1, 'Le code pays est requis')
-    .max(5, 'Le code pays ne peut pas dépasser 5 caractères'),
+    .min(1, 'Le code pays est obligatoire.')
+    .max(5, 'Le code pays ne peut pas dépasser 5 caractères. Exemple : FR, TG, US'),
   phone_number: z
     .string()
-    .min(1, 'Le numéro de téléphone est requis')
-    .regex(/^[0-9+\-\s()]+$/, 'Format de téléphone invalide'),
+    .min(1, 'Le numéro de téléphone est obligatoire.')
+    .regex(/^[0-9+\-\s()]+$/, 'Format de téléphone invalide. Utilisez uniquement des chiffres, espaces, tirets et le signe +. Exemple : +33 1 23 45 67 89'),
   role_id: z
     .string()
-    .min(1, 'Le rôle est requis'),
+    .min(1, 'Veuillez sélectionner un rôle pour cet utilisateur.'),
 });
 
 // Schéma pour la mise à jour d'un admin
 export const updateAdminSchema = z.object({
-  id: z.string().min(1, 'L\'ID est requis'),
+  id: z.string().min(1, 'L\'ID est obligatoire.'),
   first_name: z
     .string()
-    .min(1, 'Le prénom est requis')
-    .min(2, 'Le prénom doit contenir au moins 2 caractères')
-    .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+    .min(1, 'Le prénom est obligatoire.')
+    .min(2, 'Le prénom doit contenir au moins 2 caractères.')
+    .max(50, 'Le prénom ne peut pas dépasser 50 caractères.'),
   last_name: z
     .string()
-    .min(1, 'Le nom est requis')
-    .min(2, 'Le nom doit contenir au moins 2 caractères')
-    .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+    .min(1, 'Le nom est obligatoire.')
+    .min(2, 'Le nom doit contenir au moins 2 caractères.')
+    .max(50, 'Le nom ne peut pas dépasser 50 caractères.'),
   country_code: z
     .string()
-    .min(1, 'Le code pays est requis')
-    .max(5, 'Le code pays ne peut pas dépasser 5 caractères'),
+    .min(1, 'Le code pays est obligatoire.')
+    .max(5, 'Le code pays ne peut pas dépasser 5 caractères. Exemple : FR, TG, US'),
   phone_number: z
     .string()
-    .min(1, 'Le numéro de téléphone est requis')
-    .regex(/^[0-9+\-\s()]+$/, 'Format de téléphone invalide'),
+    .min(1, 'Le numéro de téléphone est obligatoire.')
+    .regex(/^[0-9+\-\s()]+$/, 'Format de téléphone invalide. Utilisez uniquement des chiffres, espaces, tirets et le signe +. Exemple : +33 1 23 45 67 89'),
   role_id: z
     .string()
     .optional(),

@@ -55,7 +55,8 @@ export default function TenantsPage() {
       setTotal(result.data.total);
       setTotalPages(result.data.totalPages);
     } else {
-      toast.error(result.error);
+      const errorMessage = result.error || "Une erreur est survenue lors du chargement des commerces. Veuillez réessayer.";
+      toast.error(errorMessage);
     }
     setIsLoading(false);
   }, [page, search, statusFilter]);
@@ -82,7 +83,8 @@ export default function TenantsPage() {
       router.push('/superadmin/tenants');
       loadTenants();
     } else {
-      toast.error(result.error);
+      const errorMessage = result.error || "Une erreur est survenue lors de la création du commerce. Veuillez vérifier les informations saisies et réessayer.";
+      toast.error(errorMessage);
     }
     setIsSubmitting(false);
   };
@@ -99,7 +101,8 @@ export default function TenantsPage() {
       setEditingTenant(null);
       loadTenants();
     } else {
-      toast.error(result.error);
+      const errorMessage = result.error || "Une erreur est survenue lors de la mise à jour du commerce. Veuillez réessayer.";
+      toast.error(errorMessage);
     }
     setIsSubmitting(false);
   };
@@ -128,7 +131,8 @@ export default function TenantsPage() {
       setSelectedTenant(null);
       loadTenants();
     } else {
-      toast.error(result.error);
+      const errorMessage = result.error || "Une erreur est survenue lors de la modification du statut du commerce. Veuillez réessayer.";
+      toast.error(errorMessage);
     }
   };
 
@@ -148,7 +152,8 @@ export default function TenantsPage() {
       setSelectedTenant(null);
       loadTenants();
     } else {
-      toast.error(result.error);
+      const errorMessage = result.error || "Une erreur est survenue lors de la suppression du commerce. Veuillez réessayer.";
+      toast.error(errorMessage);
     }
   };
 
