@@ -62,13 +62,20 @@ Une plateforme multi-tenants performante pour la gestion de points de vente (POS
     ```
 
 3.  **Configurer les variables d'environnement** :
-    Créer un fichier `.env` à la racine :
+    Copier le fichier `.env.example` vers `.env` et remplir les valeurs :
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Puis éditer `.env` avec vos valeurs :
     ```env
     DATABASE_URL="postgresql://postgres:password123@localhost:5432/saas_db"
     SESSION_SECRET="votre-secret-session-tres-securise"
     REDIS_URL="redis://localhost:6379"
     NODE_ENV="development"
     ```
+    
+    ⚠️ **Important** : Le fichier `.env.example` contient toutes les variables nécessaires avec des commentaires explicatifs.
 
 4.  **Lancer l'infrastructure (DB, Redis)** :
     ```bash
