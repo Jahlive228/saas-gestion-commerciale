@@ -43,12 +43,35 @@ export default function SignInForm() {
       console.log('[SignInForm] Résultat de la connexion:', result);
       
       if (result.success) {
-        const userName = result.data.user.first_name || result.data.user.email;
-        toast.success(`Bienvenue ${userName}!`);
-        // Utiliser window.location pour forcer un rechargement complet et mettre à jour la session
-        setTimeout(() => {
-          window.location.href = routes.dashboard.home;
-        }, 500);
+        // Vérifier si le 2FA est requis
+        if (result.data.requires2FA) {
+          // Rediriger vers la page de vérification 2FA
+          toast.success('Veuillez entrer votre code 2FA');
+          setTimeout(() => {
+            window.location.href = '/verify-2fa';
+          }, 500);
+        } else if ((result.data as any).requires2FASetup) {
+          // Rediriger vers la page d'activation 2FA
+          toast('Le 2FA est obligatoire pour votre rôle. Veuillez l\'activer.', {
+            icon: '⚠️',
+            duration: 4000,
+            style: {
+              background: '#FEF3C7',
+              color: '#92400E',
+            },
+          });
+          setTimeout(() => {
+            window.location.href = '/settings/2fa';
+          }, 500);
+        } else {
+          // Connexion normale
+          const userName = result.data.user.first_name || result.data.user.email;
+          toast.success(`Bienvenue ${userName}!`);
+          // Utiliser window.location pour forcer un rechargement complet et mettre à jour la session
+          setTimeout(() => {
+            window.location.href = routes.dashboard.home;
+          }, 500);
+        }
       } else {
         console.error('[SignInForm] Erreur de connexion:', result.error);
         const errorMessage = result.error || 'Identifiants incorrects. Vérifiez votre email et votre mot de passe.';

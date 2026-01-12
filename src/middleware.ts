@@ -8,6 +8,7 @@ const publicRoutes = [
   routes.auth.signin,
   routes.auth.forgotPassword,
   routes.auth.resetPassword,
+  '/verify-2fa', // Page de vérification 2FA
 ];
 
 // Routes privées qui nécessitent une authentification
@@ -114,11 +115,30 @@ export async function middleware(request: NextRequest) {
     }
 
     // Si l'utilisateur est authentifié et accède à une route privée,
-    // ne pas rediriger s'il est déjà sur la bonne route selon son rôle
+    // vérifier le 2FA si nécessaire
     if (isAuthenticated && isPrivateRoute) {
       try {
         const session = await SessionManager.getSession();
         const role = session?.jwtPayload?.role_name;
+        
+        // Ignorer la vérification 2FA pour les routes de configuration 2FA et de vérification
+        if (pathname === '/settings/2fa' || pathname === '/verify-2fa') {
+          return NextResponse.next();
+        }
+
+        // Vérifier si le 2FA est obligatoire pour ce rôle
+        const { is2FARequiredForRole } = await import('@/server/auth/require-2fa');
+        const { TwoFactorService } = await import('@/server/auth/2fa.service');
+        
+        if (is2FARequiredForRole(role)) {
+          const userId = session.jwtPayload.user_id;
+          const is2FAEnabled = await TwoFactorService.is2FAEnabled(userId);
+          
+          // Si le 2FA est obligatoire mais non activé, rediriger vers l'activation
+          if (!is2FAEnabled) {
+            return NextResponse.redirect(new URL('/settings/2fa', request.url));
+          }
+        }
         
         // Si un MAGASINIER accède à /warehouse ou /catalog, le laisser passer
         if (role === 'MAGASINIER' && (pathname === routes.warehouse.home || pathname === routes.warehouse.products)) {
@@ -126,6 +146,7 @@ export async function middleware(request: NextRequest) {
         }
       } catch (error) {
         // En cas d'erreur, continuer
+        console.error('[Middleware] Erreur lors de la vérification 2FA:', error);
       }
     }
 

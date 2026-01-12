@@ -20,6 +20,11 @@ export const routes = {
 
     //Profile
     profile: '/profile',
+    
+    // Settings
+    settings: {
+      '2fa': '/settings/2fa',
+    },
   },
 
   // Routes multi-app selon le cahier des charges

@@ -80,6 +80,7 @@ model User {
   // 2FA Security
   two_factor_enabled Boolean @default(false)
   two_factor_secret  String? // Secret TOTP
+  recovery_codes     String? // JSON array of recovery codes: [{"code": "hash", "used": false}]
 
   // API Token for Bearer authentication
   api_token   String?  @unique // Token pour l'authentification Bearer
@@ -231,4 +232,16 @@ model SaleItem {
   quantity    Int
   unit_price  Decimal @db.Decimal(10, 2) // Prix au moment de la vente (snapshot)
   total_price Decimal @db.Decimal(10, 2)
+}
+
+// Table temporaire pour stocker les codes de récupération 2FA en clair pendant l'activation
+model TwoFactorActivation {
+  id            String   @id @default(cuid())
+  user_id       String   @unique
+  secret        String
+  recovery_codes_plain String // JSON array des codes en clair
+  recovery_codes_hashed String // JSON array des codes hashés
+  created_at    DateTime @default(now())
+
+  @@index([user_id])
 }
