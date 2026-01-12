@@ -62,6 +62,15 @@ export function CanAccess({ permission, children, fallback = null }: CanAccessPr
           ? await hasAnyPermission(permission)
           : await hasPermission(permission);
         
+        // Log de débogage (à retirer en production)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[CanAccess] Permission check:', {
+            permission: permissionKey,
+            result,
+            timestamp: new Date().toISOString(),
+          });
+        }
+        
         // Mettre en cache le résultat
         permissionCache.set(permissionKey, {
           result,
@@ -72,7 +81,14 @@ export function CanAccess({ permission, children, fallback = null }: CanAccessPr
         if (isMountedRef.current) {
           setHasAccess(result);
         }
-      } catch {
+      } catch (error) {
+        // Log de l'erreur pour débogage
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[CanAccess] Erreur lors de la vérification de permission:', {
+            permission: permissionKey,
+            error,
+          });
+        }
         if (isMountedRef.current) {
           setHasAccess(false);
         }
@@ -105,8 +121,15 @@ export function CanAccess({ permission, children, fallback = null }: CanAccessPr
     return () => clearInterval(cleanup);
   }, []);
 
-  if (isLoading) {
-    return null; // Ou un loader si vous préférez
+  // Pendant le chargement initial, on affiche le contenu par défaut
+  // pour éviter de masquer les boutons pendant la vérification
+  // Si la permission est refusée, le contenu sera masqué après le chargement
+  // Cette approche "optimiste" améliore l'UX tout en maintenant la sécurité
+  // car la vérification se fait côté serveur de toute façon
+  if (isLoading && !permissionCache.has(permissionKey)) {
+    // Afficher le contenu par défaut pendant le chargement initial
+    // pour éviter de masquer les boutons si la vérification prend du temps
+    return <>{children}</>;
   }
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;

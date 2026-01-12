@@ -92,8 +92,21 @@ export async function checkPermissions(
       })
     );
 
+    // Log de débogage (à retirer en production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[checkPermissions] Résultats:', {
+        role,
+        permissions: permissionCodes,
+        results,
+      });
+    }
+
     return results as Record<PermissionCode, boolean>;
-  } catch {
+  } catch (error) {
+    // Log de l'erreur pour débogage
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[checkPermissions] Erreur:', error);
+    }
     return permissionCodes.reduce((acc, code) => {
       acc[code] = false;
       return acc;
