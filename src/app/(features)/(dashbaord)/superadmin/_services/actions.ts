@@ -296,6 +296,44 @@ export async function getTenantsAction(
 }
 
 /**
+ * Vérifie si un slug est disponible (non utilisé)
+ */
+export async function checkSlugAvailabilityAction(
+  slug: string,
+  excludeTenantId?: string
+): Promise<ActionResult<{ available: boolean }>> {
+  try {
+    // Vérifier d'abord si la session existe
+    const session = await SessionManager.getSession();
+    if (!session || !session.jwtPayload.is_superadmin) {
+      return { success: false, error: 'Non autorisé' };
+    }
+
+    if (!slug || slug.trim().length === 0) {
+      return { success: true, data: { available: true } };
+    }
+
+    // Vérifier si le slug existe déjà
+    const existing = await prisma.tenant.findUnique({
+      where: { slug: slug.trim() },
+    });
+
+    // Si on est en mode édition, exclure le tenant actuel
+    if (excludeTenantId && existing && existing.id === excludeTenantId) {
+      return { success: true, data: { available: true } };
+    }
+
+    return {
+      success: true,
+      data: { available: !existing },
+    };
+  } catch (error: any) {
+    console.error('[checkSlugAvailabilityAction] Erreur:', error);
+    return { success: false, error: error.message || 'Erreur lors de la vérification du slug' };
+  }
+}
+
+/**
  * Crée un nouveau tenant
  */
 export async function createTenantAction(
