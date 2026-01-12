@@ -5,6 +5,8 @@ import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getProductsAction, type Product } from "./_services/actions";
+import { CanAccess } from "@/components/permissions/CanAccess";
+import { PERMISSION_CODES } from "@/constants/permissions-saas";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -128,10 +130,12 @@ export default function ProductsPage() {
             Gérez tous les produits de la plateforme
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Nouveau Produit
-        </Button>
+        <CanAccess permission={PERMISSION_CODES.PRODUCTS_CREATE}>
+          <Button className="flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Nouveau Produit
+          </Button>
+        </CanAccess>
       </div>
 
       {/* Stats Cards */}

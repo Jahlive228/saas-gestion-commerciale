@@ -5,6 +5,8 @@ import { PencilIcon as PencilIconHero, PowerIcon, TrashIcon } from '@heroicons/r
 import Button from '@/components/ui/button/Button';
 import type { Column } from '@/components/common/DataTable';
 import type { TeamMember } from './actions';
+import { CanAccess } from '@/components/permissions/CanAccess';
+import { PERMISSION_CODES } from '@/constants/permissions-saas';
 
 interface TeamColumnsProps {
   onEdit: (member: TeamMember) => void;
@@ -98,43 +100,49 @@ export function getTeamColumns({
       align: 'center',
       render: (_: unknown, member: TeamMember) => (
         <div className="flex items-center justify-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(member)}
-            disabled={isToggling || isDeleting}
-            className="p-2 hover:bg-blue-50 hover:text-blue-600 border-gray-300"
-            title="Modifier le membre"
-          >
-            <PencilIconHero className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={PERMISSION_CODES.USERS_UPDATE}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(member)}
+              disabled={isToggling || isDeleting}
+              className="p-2 hover:bg-blue-50 hover:text-blue-600 border-gray-300"
+              title="Modifier le membre"
+            >
+              <PencilIconHero className="h-4 w-4" />
+            </Button>
+          </CanAccess>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onToggleStatus(member)}
-            loading={isToggling}
-            disabled={isToggling || isDeleting}
-            className={`p-2 border-gray-300 ${
-              member.is_active 
-                ? 'hover:bg-orange-50 hover:text-orange-600' 
-                : 'hover:bg-green-50 hover:text-green-600'
-            }`}
-            title={member.is_active ? 'Désactiver le membre' : 'Activer le membre'}
-          >
-            <PowerIcon className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={[PERMISSION_CODES.USERS_ACTIVATE, PERMISSION_CODES.USERS_DEACTIVATE]}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onToggleStatus(member)}
+              loading={isToggling}
+              disabled={isToggling || isDeleting}
+              className={`p-2 border-gray-300 ${
+                member.is_active 
+                  ? 'hover:bg-orange-50 hover:text-orange-600' 
+                  : 'hover:bg-green-50 hover:text-green-600'
+              }`}
+              title={member.is_active ? 'Désactiver le membre' : 'Activer le membre'}
+            >
+              <PowerIcon className="h-4 w-4" />
+            </Button>
+          </CanAccess>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(member)}
-            disabled={isToggling || isDeleting}
-            className="p-2 hover:bg-red-50 hover:text-red-600 border-gray-300"
-            title="Supprimer le membre"
-          >
-            <TrashIcon className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={PERMISSION_CODES.USERS_DELETE}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(member)}
+              disabled={isToggling || isDeleting}
+              className="p-2 hover:bg-red-50 hover:text-red-600 border-gray-300"
+              title="Supprimer le membre"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </CanAccess>
         </div>
       ),
     },

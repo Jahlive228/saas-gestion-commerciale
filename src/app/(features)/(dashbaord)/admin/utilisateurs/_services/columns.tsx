@@ -5,6 +5,8 @@ import { PencilIcon as PencilIconHero, PowerIcon, TrashIcon } from '@heroicons/r
 import Button from '@/components/ui/button/Button';
 import type { Column } from '@/components/common/DataTable';
 import type { Admin } from './types';
+import { CanAccess } from '@/components/permissions/CanAccess';
+import { PERMISSION_CODES } from '@/constants/permissions-saas';
 
 interface AdminColumnsProps {
   onEdit: (admin: Admin) => void;
@@ -115,45 +117,51 @@ export function getAdminColumns({
       render: (_: unknown, admin: Admin) => (
         <div className="flex items-center justify-center space-x-2">
           {/* Bouton Modifier */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(admin)}
-            disabled={isToggling || isDeleting}
-            className="p-2 hover:bg-blue-50 hover:text-blue-600 border-gray-300"
-            title="Modifier l'administrateur"
-          >
-            <PencilIconHero className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={PERMISSION_CODES.USERS_UPDATE}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(admin)}
+              disabled={isToggling || isDeleting}
+              className="p-2 hover:bg-blue-50 hover:text-blue-600 border-gray-300"
+              title="Modifier l'administrateur"
+            >
+              <PencilIconHero className="h-4 w-4" />
+            </Button>
+          </CanAccess>
 
           {/* Bouton Activer/Désactiver */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onToggleStatus(admin)}
-            loading={isToggling}
-            disabled={isToggling || isDeleting}
-            className={`p-2 border-gray-300 ${
-              admin.is_active 
-                ? 'hover:bg-orange-50 hover:text-orange-600' 
-                : 'hover:bg-green-50 hover:text-green-600'
-            }`}
-            title={admin.is_active ? 'Désactiver l\'administrateur' : 'Activer l\'administrateur'}
-          >
-            <PowerIcon className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={[PERMISSION_CODES.USERS_ACTIVATE, PERMISSION_CODES.USERS_DEACTIVATE]}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onToggleStatus(admin)}
+              loading={isToggling}
+              disabled={isToggling || isDeleting}
+              className={`p-2 border-gray-300 ${
+                admin.is_active 
+                  ? 'hover:bg-orange-50 hover:text-orange-600' 
+                  : 'hover:bg-green-50 hover:text-green-600'
+              }`}
+              title={admin.is_active ? 'Désactiver l\'administrateur' : 'Activer l\'administrateur'}
+            >
+              <PowerIcon className="h-4 w-4" />
+            </Button>
+          </CanAccess>
 
           {/* Bouton Supprimer */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(admin)}
-            disabled={isToggling || isDeleting}
-            className="p-2 hover:bg-red-50 hover:text-red-600 border-gray-300"
-            title="Supprimer l'administrateur"
-          >
-            <TrashIcon className="h-4 w-4" />
-          </Button>
+          <CanAccess permission={PERMISSION_CODES.USERS_DELETE}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(admin)}
+              disabled={isToggling || isDeleting}
+              className="p-2 hover:bg-red-50 hover:text-red-600 border-gray-300"
+              title="Supprimer l'administrateur"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </CanAccess>
         </div>
       ),
     },

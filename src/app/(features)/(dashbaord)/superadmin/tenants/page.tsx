@@ -16,6 +16,8 @@ import type { TenantWithStats, CreateTenantFormData, UpdateTenantFormData } from
 import TenantModal from '../_components/TenantModal';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { toast } from 'react-hot-toast';
+import { CanAccess } from '@/components/permissions/CanAccess';
+import { PERMISSION_CODES } from '@/constants/permissions-saas';
 
 export default function TenantsPage() {
   const searchParams = useSearchParams();
@@ -186,16 +188,18 @@ export default function TenantsPage() {
             {total} commerce{total > 1 ? 's' : ''} au total
           </p>
         </div>
-        <button
-          onClick={() => {
-            setEditingTenant(null);
-            setIsModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Nouveau Commerce
-        </button>
+        <CanAccess permission={PERMISSION_CODES.TENANTS_CREATE}>
+          <button
+            onClick={() => {
+              setEditingTenant(null);
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Nouveau Commerce
+          </button>
+        </CanAccess>
       </div>
 
       {/* Filters */}
@@ -295,34 +299,40 @@ export default function TenantsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingTenant(tenant);
-                              setIsModalOpen(true);
-                            }}
-                            className="p-2 text-gray-500 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
-                            title="Modifier"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleToggleStatus(tenant)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                              tenant.status === TenantStatus.ACTIVE
-                                ? 'text-orange-700 bg-orange-50 hover:bg-orange-100'
-                                : 'text-brand-700 bg-brand-50 hover:bg-brand-100'
-                            }`}
-                          >
-                            {tenant.status === TenantStatus.ACTIVE ? 'Suspendre' : 'Activer'}
-                          </button>
-                          {tenant._count.users === 0 && tenant._count.products === 0 && tenant._count.sales === 0 && (
+                          <CanAccess permission={PERMISSION_CODES.TENANTS_UPDATE}>
                             <button
-                              onClick={() => handleDelete(tenant)}
-                              className="p-2 text-gray-500 hover:text-error-600 hover:bg-error-50 rounded-lg transition-colors"
-                              title="Supprimer"
+                              onClick={() => {
+                                setEditingTenant(tenant);
+                                setIsModalOpen(true);
+                              }}
+                              className="p-2 text-gray-500 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+                              title="Modifier"
                             >
-                              <TrashBinIcon className="w-4 h-4" />
+                              <PencilIcon className="w-4 h-4" />
                             </button>
+                          </CanAccess>
+                          <CanAccess permission={PERMISSION_CODES.TENANTS_SUSPEND}>
+                            <button
+                              onClick={() => handleToggleStatus(tenant)}
+                              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                                tenant.status === TenantStatus.ACTIVE
+                                  ? 'text-orange-700 bg-orange-50 hover:bg-orange-100'
+                                  : 'text-brand-700 bg-brand-50 hover:bg-brand-100'
+                              }`}
+                            >
+                              {tenant.status === TenantStatus.ACTIVE ? 'Suspendre' : 'Activer'}
+                            </button>
+                          </CanAccess>
+                          {tenant._count.users === 0 && tenant._count.products === 0 && tenant._count.sales === 0 && (
+                            <CanAccess permission={PERMISSION_CODES.TENANTS_DELETE}>
+                              <button
+                                onClick={() => handleDelete(tenant)}
+                                className="p-2 text-gray-500 hover:text-error-600 hover:bg-error-50 rounded-lg transition-colors"
+                                title="Supprimer"
+                              >
+                                <TrashBinIcon className="w-4 h-4" />
+                              </button>
+                            </CanAccess>
                           )}
                         </div>
                       </td>
