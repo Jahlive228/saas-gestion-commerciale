@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPOSProductsAction, createSaleAction } from '../_services/actions';
 import { ShoppingCartIcon, SearchIcon, XIcon } from '@/icons/index';
@@ -16,16 +16,127 @@ interface CartItem {
 export default function POSInterface() {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isWindowFocused, setIsWindowFocused] = useState(true);
+  const [stockUpdatedProducts, setStockUpdatedProducts] = useState<Set<string>>(new Set());
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+  const previousProductsRef = useRef<POSProduct[]>([]);
   const queryClient = useQueryClient();
 
-  // Récupérer les produits
-  const { data: productsResponse, isLoading: isLoadingProducts } = useQuery({
+  // Gérer le focus de la fenêtre pour activer/désactiver le polling
+  useEffect(() => {
+    const handleFocus = () => setIsWindowFocused(true);
+    const handleBlur = () => setIsWindowFocused(false);
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
+
+  // Récupérer les produits avec polling optimisé
+  const { data: productsResponse, isLoading: isLoadingProducts, dataUpdatedAt } = useQuery({
     queryKey: ['pos-products', searchTerm],
     queryFn: () => getPOSProductsAction(searchTerm || undefined),
-    staleTime: 30 * 1000, // 30 secondes
+    staleTime: 5 * 1000, // 5 secondes - données considérées comme fraîches pendant 5s
+    gcTime: 10 * 60 * 1000, // 10 minutes - garder en cache pendant 10 minutes
+    refetchOnWindowFocus: true, // Rafraîchir quand la fenêtre reprend le focus
+    refetchOnMount: false, // Ne pas rafraîchir à chaque montage si les données sont fraîches
+    refetchInterval: (query) => {
+      // Polling seulement si la fenêtre est active et qu'on n'est pas en train de chercher
+      if (!isWindowFocused || searchTerm.trim().length > 0) {
+        return false; // Désactiver le polling si la fenêtre n'est pas active ou si on cherche
+      }
+      // Polling toutes les 8 secondes quand la fenêtre est active
+      return 8000;
+    },
   });
 
-  const products = productsResponse?.success ? productsResponse.data || [] : [];
+  const products = useMemo(() => {
+    return productsResponse?.success ? productsResponse.data || [] : [];
+  }, [productsResponse]);
+
+  // Détecter les changements de stock et mettre à jour le panier si nécessaire
+  useEffect(() => {
+    if (products.length === 0 || previousProductsRef.current.length === 0) {
+      previousProductsRef.current = products;
+      return;
+    }
+
+    const updatedProducts = new Set<string>();
+    const productMap = new Map(products.map(p => [p.id, p]));
+    const previousProductMap = new Map(previousProductsRef.current.map(p => [p.id, p]));
+
+    // Détecter les changements de stock
+    products.forEach(product => {
+      const previousProduct = previousProductMap.get(product.id);
+      if (previousProduct && previousProduct.stock_qty !== product.stock_qty) {
+        updatedProducts.add(product.id);
+      }
+    });
+
+    // Mettre à jour le panier si le stock a changé pour un produit dans le panier
+    if (updatedProducts.size > 0) {
+      setStockUpdatedProducts(updatedProducts);
+      setLastUpdateTime(new Date());
+
+      // Nettoyer l'animation après 3 secondes
+      const timer = setTimeout(() => {
+        setStockUpdatedProducts(new Set());
+      }, 3000);
+
+      // Mettre à jour le panier avec les nouveaux stocks
+      setCart(prevCart => {
+        return prevCart.map(item => {
+          const updatedProduct = productMap.get(item.product.id);
+          if (updatedProduct) {
+            // Si le stock a diminué et que la quantité dans le panier dépasse le nouveau stock
+            if (item.quantity > updatedProduct.stock_qty) {
+              toast(
+                `Stock insuffisant pour "${item.product.name}". Quantité ajustée à ${updatedProduct.stock_qty}.`,
+                { 
+                  duration: 4000,
+                  icon: '⚠️',
+                  style: {
+                    background: '#FEF3C7',
+                    color: '#92400E',
+                  },
+                }
+              );
+              return {
+                ...item,
+                product: updatedProduct,
+                quantity: Math.min(item.quantity, updatedProduct.stock_qty),
+              };
+            }
+            // Mettre à jour le produit dans le panier avec les nouvelles données
+            return {
+              ...item,
+              product: updatedProduct,
+            };
+          }
+          return item;
+        }).filter(item => item.quantity > 0); // Retirer les articles avec quantité 0
+      });
+
+      // Afficher une notification si des produits ont été mis à jour
+      if (updatedProducts.size > 0 && !searchTerm) {
+        toast.success(
+          `Stock mis à jour pour ${updatedProducts.size} produit(s)`,
+          { 
+            duration: 2000,
+            icon: '🔄',
+          }
+        );
+      }
+
+      return () => clearTimeout(timer);
+    }
+
+    previousProductsRef.current = products;
+  }, [products, searchTerm]);
 
   // Mutation pour créer une vente
   const createSaleMutation = useMutation({
@@ -35,12 +146,21 @@ export default function POSInterface() {
         toast.success(`Vente créée avec succès ! Référence: ${result.data.reference}`);
         setCart([]);
         setSearchTerm('');
+        // Invalider les queries pour forcer le rafraîchissement
         queryClient.invalidateQueries({ queryKey: ['my-sales'] });
+        queryClient.invalidateQueries({ queryKey: ['pos-products'] });
+        // Rafraîchir immédiatement les produits pour mettre à jour le stock
+        queryClient.refetchQueries({ queryKey: ['pos-products', searchTerm] });
       } else {
         toast.error(result.error);
       }
     },
     onError: (error: any) => {
+      // Si l'erreur est liée au stock insuffisant, rafraîchir les produits
+      if (error.message?.includes('stock') || error.message?.includes('Stock')) {
+        queryClient.invalidateQueries({ queryKey: ['pos-products'] });
+        queryClient.refetchQueries({ queryKey: ['pos-products', searchTerm] });
+      }
       toast.error(error.message || 'Erreur lors de la création de la vente');
     },
   });
@@ -63,55 +183,69 @@ export default function POSInterface() {
     }, 0);
   }, [cart]);
 
-  // Ajouter un produit au panier
-  const addToCart = (product: POSProduct) => {
-    if (product.stock_qty === 0) {
+  // Ajouter un produit au panier avec vérification du stock
+  const addToCart = useCallback((product: POSProduct) => {
+    // Vérifier le stock actuel depuis les produits mis à jour
+    const currentProduct = products.find(p => p.id === product.id);
+    const currentStock = currentProduct?.stock_qty ?? product.stock_qty;
+
+    if (currentStock === 0) {
       toast.error('Produit en rupture de stock');
       return;
     }
 
     const existingItem = cart.find((item) => item.product.id === product.id);
     if (existingItem) {
-      if (existingItem.quantity >= product.stock_qty) {
-        toast.error('Stock insuffisant');
+      if (existingItem.quantity >= currentStock) {
+        toast.error(`Stock insuffisant. Stock disponible: ${currentStock}`);
         return;
       }
       setCart(
         cart.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + 1, product: currentProduct || product }
             : item
         )
       );
     } else {
-      setCart([...cart, { product, quantity: 1 }]);
+      setCart([...cart, { product: currentProduct || product, quantity: 1 }]);
     }
-  };
+  }, [cart, products]);
 
-  // Modifier la quantité d'un article
-  const updateQuantity = (productId: string, quantity: number) => {
+  // Retirer un produit du panier
+  const removeFromCart = useCallback((productId: string) => {
+    setCart(prevCart => prevCart.filter((item) => item.product.id !== productId));
+  }, []);
+
+  // Modifier la quantité d'un article avec vérification du stock
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
 
-    const item = cart.find((item) => item.product.id === productId);
-    if (item && quantity > item.product.stock_qty) {
-      toast.error('Stock insuffisant');
-      return;
-    }
+    // Vérifier le stock actuel depuis les produits mis à jour
+    const currentProduct = products.find(p => p.id === productId);
+    
+    setCart(prevCart => {
+      const item = prevCart.find((item) => item.product.id === productId);
+      
+      if (item) {
+        const currentStock = currentProduct?.stock_qty ?? item.product.stock_qty;
+        if (quantity > currentStock) {
+          toast.error(`Stock insuffisant. Stock disponible: ${currentStock}`);
+          return prevCart;
+        }
 
-    setCart(
-      cart.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  // Retirer un produit du panier
-  const removeFromCart = (productId: string) => {
-    setCart(cart.filter((item) => item.product.id !== productId));
-  };
+        return prevCart.map((item) =>
+          item.product.id === productId 
+            ? { ...item, quantity, product: currentProduct || item.product }
+            : item
+        );
+      }
+      return prevCart;
+    });
+  }, [products, removeFromCart]);
 
   // Vider le panier
   const clearCart = () => {
@@ -150,7 +284,17 @@ export default function POSInterface() {
       {/* Zone produits */}
       <div className="flex-1 flex flex-col p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Point de Vente</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold text-gray-900">Point de Vente</h1>
+            {lastUpdateTime && (
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <div className={`w-2 h-2 rounded-full ${isWindowFocused ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                <span>
+                  {isWindowFocused ? 'Mise à jour automatique active' : 'Mise à jour en pause'}
+                </span>
+              </div>
+            )}
+          </div>
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -183,19 +327,31 @@ export default function POSInterface() {
                 const inCart = !!cartItem;
                 const isOutOfStock = product.stock_qty === 0;
 
+                const isStockUpdated = stockUpdatedProducts.has(product.id);
+                const previousStock = previousProductsRef.current.find(p => p.id === product.id)?.stock_qty;
+                const stockChanged = previousStock !== undefined && previousStock !== product.stock_qty;
+
                 return (
                   <button
                     key={product.id}
                     onClick={() => !isOutOfStock && addToCart(product)}
                     disabled={isOutOfStock}
-                    className={`p-4 bg-white rounded-lg border-2 transition-all text-left ${
+                    className={`p-4 bg-white rounded-lg border-2 transition-all text-left relative ${
                       isOutOfStock
                         ? 'border-gray-200 opacity-50 cursor-not-allowed'
                         : inCart
                           ? 'border-brand-500 bg-brand-50'
-                          : 'border-gray-200 hover:border-brand-300 hover:shadow-md'
+                          : isStockUpdated
+                            ? 'border-green-400 bg-green-50 animate-pulse'
+                            : 'border-gray-200 hover:border-brand-300 hover:shadow-md'
                     }`}
                   >
+                    {/* Badge de mise à jour du stock */}
+                    {isStockUpdated && (
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full animate-bounce">
+                        🔄 Mis à jour
+                      </div>
+                    )}
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
                         {product.name}
@@ -213,9 +369,16 @@ export default function POSInterface() {
                       <p className="text-lg font-bold text-brand-600">
                         {formatCurrency(product.price)}
                       </p>
-                      <p className={`text-xs ${isOutOfStock ? 'text-red-600' : 'text-gray-500'}`}>
-                        Stock: {product.stock_qty}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        {stockChanged && previousStock !== undefined && (
+                          <span className={`text-xs ${previousStock > product.stock_qty ? 'text-red-500' : 'text-green-500'}`}>
+                            {previousStock > product.stock_qty ? '↓' : '↑'}
+                          </span>
+                        )}
+                        <p className={`text-xs font-medium ${isOutOfStock ? 'text-red-600' : isStockUpdated ? 'text-green-600' : 'text-gray-500'}`}>
+                          Stock: {product.stock_qty}
+                        </p>
+                      </div>
                     </div>
                   </button>
                 );
