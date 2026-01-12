@@ -45,10 +45,32 @@ Une plateforme multi-tenants performante pour la gestion de points de vente (POS
 ### Prérequis
 
 *   Docker & Docker Compose
-*   Node.js 20+
+*   Node.js 20+ (pour développement local)
 *   pnpm (ou npm/yarn)
 
-### Démarrage Rapide
+### Option 1 : Installation avec Docker (Recommandé)
+
+Cette méthode est la plus simple et initialise automatiquement la base de données avec des données de test.
+
+1.  **Cloner le dépôt** :
+    ```bash
+    git clone <repository-url>
+    cd saas-gestion-commerciale
+    ```
+
+2.  **Démarrer l'application** :
+    ```bash
+    docker-compose up --build
+    ```
+
+3.  **Accéder à l'application** :
+    L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
+    
+    Le seed s'exécute automatiquement lors du premier démarrage. Voir la section [🐳 Docker](#-docker) pour plus de détails.
+
+### Option 2 : Installation Locale (Développement)
+
+Pour développer localement sans Docker :
 
 1.  **Cloner le dépôt** :
     ```bash
@@ -79,7 +101,7 @@ Une plateforme multi-tenants performante pour la gestion de points de vente (POS
 
 4.  **Lancer l'infrastructure (DB, Redis)** :
     ```bash
-    docker-compose up -d
+    docker-compose up -d db cache
     ```
 
 5.  **Générer le client Prisma** :
@@ -90,7 +112,8 @@ Une plateforme multi-tenants performante pour la gestion de points de vente (POS
 6.  **Initialiser la base de données** :
     ```bash
     npx prisma migrate dev
-    npx prisma db seed
+    pnpm run seed:permissions
+    pnpm run seed:all
     ```
 
 7.  **Lancer l'application** :
@@ -102,7 +125,7 @@ L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 
 ## 🔐 Identifiants de Test (Seed)
 
-Le script de seed crée automatiquement :
+Le script de seed crée automatiquement les utilisateurs suivants. **Tous les utilisateurs ont le mot de passe : `password123`**
 
 ### Superadmin
 *   **Email** : `admin@saas.com`
@@ -110,14 +133,25 @@ Le script de seed crée automatiquement :
 *   **Rôle** : SUPERADMIN
 *   **Accès** : Tous les tenants
 
-### Shop A
+### Shop A (Tenant 1)
 *   **Directeur** : `director@shop-a.com` / `password123`
 *   **Gérant** : `gerant@shop-a.com` / `password123`
 *   **Vendeur** : `seller@shop-a.com` / `password123`
 *   **Magasinier** : `stock@shop-a.com` / `password123`
 
-### Shop B
+### Shop B (Tenant 2)
 *   **Directeur** : `director@shop-b.com` / `password123`
+
+### Données Créées
+
+En plus des utilisateurs, le seed crée :
+*   **2 Tenants** (Shop A et Shop B)
+*   **3 Catégories** (Électronique, Vêtements, Alimentaire)
+*   **6 Produits** avec stocks initiaux
+*   **Transactions de stock** (réapprovisionnements)
+*   **2 Ventes** complètes avec items
+*   **2 Abonnements** (Shop A: Plan Pro, Shop B: Plan Basic)
+*   **Toutes les permissions** assignées aux rôles
 
 ## 📋 Schéma des Rôles
 
@@ -253,6 +287,59 @@ npx prisma migrate reset
 *   **db** : PostgreSQL 15 (port 5432)
 *   **cache** : Redis 7 (port 6379)
 
+### Démarrage avec Docker
+
+L'application est configurée pour s'initialiser automatiquement lors du premier démarrage avec `docker-compose up`.
+
+#### Démarrage Rapide
+
+```bash
+# Démarrer tous les services (app, db, redis)
+docker-compose up
+
+# Démarrer en arrière-plan
+docker-compose up -d
+
+# Reconstruire l'image et redémarrer
+docker-compose up --build
+```
+
+#### Initialisation Automatique
+
+Lors du premier démarrage, le script d'initialisation (`docker-entrypoint.sh`) :
+
+1. ✅ Attend que la base de données soit prête
+2. ✅ Exécute les migrations Prisma
+3. ✅ Vérifie si la base est vide (pas de Superadmin)
+4. ✅ Si vide, exécute automatiquement :
+   - Le seed des permissions (`seed-permissions.ts`)
+   - Le seed principal (`seed.ts`)
+
+**Note** : Le seed ne s'exécute **que si aucun Superadmin n'existe** dans la base. Pour réinitialiser complètement :
+
+```bash
+# Arrêter et supprimer les volumes (⚠️ supprime toutes les données)
+docker-compose down -v
+
+# Redémarrer (le seed s'exécutera automatiquement)
+docker-compose up --build
+```
+
+#### Données de Test Créées
+
+Le seed automatique crée :
+
+*   **1 Superadmin** : `admin@saas.com` / `password123`
+*   **2 Tenants** (Shop A et Shop B)
+*   **2 Directeurs** (un par tenant)
+*   **3 Utilisateurs supplémentaires** pour Shop A (Gérant, Vendeur, Magasinier)
+*   **3 Catégories** (Électronique, Vêtements pour Shop A, Alimentaire pour Shop B)
+*   **6 Produits** (4 pour Shop A, 2 pour Shop B)
+*   **Transactions de stock** (réapprovisionnements initiaux)
+*   **2 Ventes** (exemples de ventes complétées)
+*   **2 Abonnements** (Shop A: Plan Pro ACTIVE, Shop B: Plan Basic TRIALING)
+*   **Toutes les permissions** assignées aux rôles appropriés
+
 ### Commandes Utiles
 
 ```bash
@@ -262,12 +349,30 @@ docker-compose up -d
 # Voir les logs
 docker-compose logs -f
 
+# Voir les logs de l'application uniquement
+docker-compose logs -f app
+
 # Arrêter tous les services
 docker-compose down
 
 # Réinitialiser (supprime les volumes)
 docker-compose down -v
+
+# Exécuter le seed manuellement dans le conteneur
+docker exec -it saas_app sh
+node_modules/.bin/tsx prisma/seed-permissions.ts
+node_modules/.bin/tsx prisma/seed.ts
 ```
+
+### Vérification
+
+Pour vérifier que le seed a bien fonctionné :
+
+1. Connectez-vous à l'application : http://localhost:3000
+2. Connectez-vous avec `admin@saas.com` / `password123`
+3. Vérifiez les différents tenants et utilisateurs dans l'interface
+
+📖 **Documentation complète** : Voir [docs/DOCKER_SEED.md](docs/DOCKER_SEED.md) pour plus de détails.
 
 ## 📚 Documentation Technique
 

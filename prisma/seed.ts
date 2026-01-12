@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient, Role, TenantStatus, ScaleUnit } from '@prisma/client';
+import { PrismaClient, Role, TenantStatus, ScaleUnit, TransactionType, SaleStatus, SubscriptionStatus } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcryptjs';
@@ -269,6 +269,177 @@ async function main() {
   }
   console.log('✅ Produits Shop B créés');
 
+  // 8. Récupérer tous les produits créés pour créer des ventes
+  const allProductsA = await prisma.product.findMany({
+    where: { tenant_id: tenantA.id },
+  });
+
+  const allProductsB = await prisma.product.findMany({
+    where: { tenant_id: tenantB.id },
+  });
+
+  // 9. Créer des transactions de stock initiales (réapprovisionnement)
+  console.log('📦 Création des transactions de stock...');
+  for (const product of allProductsA) {
+    await prisma.stockTransaction.create({
+      data: {
+        product_id: product.id,
+        user_id: magasinierA.id,
+        type: TransactionType.RESTOCK,
+        quantity: product.stock_qty,
+        reason: 'Stock initial',
+      },
+    });
+  }
+  for (const product of allProductsB) {
+    await prisma.stockTransaction.create({
+      data: {
+        product_id: product.id,
+        user_id: magasinierA.id, // Utiliser le magasinier de Shop A (ou créer un pour Shop B)
+        type: TransactionType.RESTOCK,
+        quantity: product.stock_qty,
+        reason: 'Stock initial',
+      },
+    });
+  }
+  console.log('✅ Transactions de stock créées');
+
+  // 10. Créer des ventes pour Shop A
+  console.log('💰 Création des ventes...');
+  
+  // Vente 1 - Vendeur A
+  const sale1 = await prisma.sale.create({
+    data: {
+      reference: `SALE-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(new Date().getHours()).padStart(2, '0')}${String(new Date().getMinutes()).padStart(2, '0')}${String(new Date().getSeconds()).padStart(2, '0')}-0001`,
+      tenant_id: tenantA.id,
+      seller_id: vendeurA.id,
+      total_amount: 0, // Sera calculé
+      status: SaleStatus.COMPLETED,
+      items: {
+        create: [
+          {
+            product_id: allProductsA[0].id,
+            quantity: 2,
+            unit_price: allProductsA[0].price,
+            total_price: Number(allProductsA[0].price) * 2,
+          },
+          {
+            product_id: allProductsA[2].id,
+            quantity: 1,
+            unit_price: allProductsA[2].price,
+            total_price: Number(allProductsA[2].price),
+          },
+        ],
+      },
+    },
+  });
+
+  // Mettre à jour le total_amount
+  const sale1Total = await prisma.saleItem.aggregate({
+    where: { sale_id: sale1.id },
+    _sum: { total_price: true },
+  });
+  await prisma.sale.update({
+    where: { id: sale1.id },
+    data: { total_amount: sale1Total._sum.total_price || 0 },
+  });
+
+  // Créer les transactions de stock pour cette vente
+  await prisma.stockTransaction.createMany({
+    data: [
+      {
+        product_id: allProductsA[0].id,
+        user_id: vendeurA.id,
+        type: TransactionType.SALE,
+        quantity: -2,
+        reason: `Vente ${sale1.reference}`,
+      },
+      {
+        product_id: allProductsA[2].id,
+        user_id: vendeurA.id,
+        type: TransactionType.SALE,
+        quantity: -1,
+        reason: `Vente ${sale1.reference}`,
+      },
+    ],
+  });
+
+  // Vente 2 - Gérant A
+  const sale2 = await prisma.sale.create({
+    data: {
+      reference: `SALE-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(new Date().getHours()).padStart(2, '0')}${String(new Date().getMinutes()).padStart(2, '0')}${String((new Date().getSeconds() + 1) % 60).padStart(2, '0')}-0002`,
+      tenant_id: tenantA.id,
+      seller_id: gerantA.id,
+      total_amount: 0,
+      status: SaleStatus.COMPLETED,
+      items: {
+        create: [
+          {
+            product_id: allProductsA[1].id,
+            quantity: 3,
+            unit_price: allProductsA[1].price,
+            total_price: Number(allProductsA[1].price) * 3,
+          },
+        ],
+      },
+    },
+  });
+
+  const sale2Total = await prisma.saleItem.aggregate({
+    where: { sale_id: sale2.id },
+    _sum: { total_price: true },
+  });
+  await prisma.sale.update({
+    where: { id: sale2.id },
+    data: { total_amount: sale2Total._sum.total_price || 0 },
+  });
+
+  await prisma.stockTransaction.create({
+    data: {
+      product_id: allProductsA[1].id,
+      user_id: gerantA.id,
+      type: 'SALE',
+      quantity: -3,
+      reason: `Vente ${sale2.reference}`,
+    },
+  });
+
+  console.log('✅ Ventes créées');
+
+  // 11. Créer des abonnements pour les tenants
+  console.log('💳 Création des abonnements...');
+  
+  const now = new Date();
+  const periodEnd = new Date(now);
+  periodEnd.setMonth(periodEnd.getMonth() + 1); // 1 mois
+
+  await prisma.subscription.create({
+    data: {
+      tenant_id: tenantA.id,
+      plan_id: 'PRO',
+      plan_name: 'Plan Pro',
+      plan_price: 79.00,
+      status: SubscriptionStatus.ACTIVE,
+      current_period_start: now,
+      current_period_end: periodEnd,
+      cancel_at_period_end: false,
+    },
+  });
+
+  await prisma.subscription.create({
+    data: {
+      tenant_id: tenantB.id,
+      plan_id: 'BASIC',
+      plan_name: 'Plan Basic',
+      plan_price: 29.00,
+      status: SubscriptionStatus.TRIALING,
+      current_period_start: now,
+      current_period_end: periodEnd,
+      cancel_at_period_end: false,
+    },
+  });
+  console.log('✅ Abonnements créés');
+
   console.log('🎉 Seed terminé avec succès!');
   console.log('\n📋 Résumé:');
   console.log(`   - 1 Superadmin: ${superadmin.email}`);
@@ -277,6 +448,9 @@ async function main() {
   console.log(`   - 3 Utilisateurs Shop A: ${gerantA.email}, ${vendeurA.email}, ${magasinierA.email}`);
   console.log(`   - 3 Catégories créées`);
   console.log(`   - 6 Produits créés`);
+  console.log(`   - ${allProductsA.length + allProductsB.length} Transactions de stock créées`);
+  console.log(`   - 2 Ventes créées`);
+  console.log(`   - 2 Abonnements créés`);
   console.log('\n🔐 Tous les utilisateurs ont le mot de passe: password123');
   console.log('\n💡 Pour peupler les permissions, exécutez: pnpm run seed:permissions');
 }

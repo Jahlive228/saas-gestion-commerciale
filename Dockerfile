@@ -96,6 +96,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_module
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modules/esbuild
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+# Copy seed scripts
+COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./prisma/seed.ts
+COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed-permissions.ts ./prisma/seed-permissions.ts
+# Copy entrypoint script
+COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
 USER nextjs
 
@@ -105,26 +110,9 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-# Create entrypoint script to run migrations and seed permissions before starting the app
-RUN echo '#!/bin/sh' > /tmp/entrypoint.sh && \
-    echo 'set -e' >> /tmp/entrypoint.sh && \
-    echo 'echo "=== Starting migration process ==="' >> /tmp/entrypoint.sh && \
-    echo 'echo "Waiting for database connection..."' >> /tmp/entrypoint.sh && \
-    echo 'for i in 1 2 3 4 5 6 7 8 9 10; do' >> /tmp/entrypoint.sh && \
-    echo '  if node node_modules/.bin/prisma db execute --stdin <<< "SELECT 1" > /dev/null 2>&1; then' >> /tmp/entrypoint.sh && \
-    echo '    echo "✓ Database is ready!"' >> /tmp/entrypoint.sh && \
-    echo '    break' >> /tmp/entrypoint.sh && \
-    echo '  fi' >> /tmp/entrypoint.sh && \
-    echo '  echo "Waiting for database... ($i/10)"' >> /tmp/entrypoint.sh && \
-    echo '  sleep 2' >> /tmp/entrypoint.sh && \
-    echo 'done' >> /tmp/entrypoint.sh && \
-    echo 'echo "Running Prisma migrations..."' >> /tmp/entrypoint.sh && \
-    echo 'node node_modules/.bin/prisma migrate deploy' >> /tmp/entrypoint.sh && \
-    echo 'echo "✓ Migrations completed successfully"' >> /tmp/entrypoint.sh && \
-    echo 'echo "Starting application..."' >> /tmp/entrypoint.sh && \
-    echo 'exec node server.js' >> /tmp/entrypoint.sh && \
-    chmod +x /tmp/entrypoint.sh
+# Make entrypoint script executable
+RUN chmod +x docker-entrypoint.sh
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD ["/tmp/entrypoint.sh"]
+CMD ["./docker-entrypoint.sh"]
