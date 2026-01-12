@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/common/DataTable";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -35,7 +35,7 @@ export default function ProductsPage() {
     loadProducts();
   }, []);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       key: "name",
       title: "Produit",
@@ -118,7 +118,7 @@ export default function ProductsPage() {
         );
       },
     },
-  ];
+  ], []);
 
   return (
     <div className="space-y-6">

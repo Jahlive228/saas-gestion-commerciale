@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSession } from '@/hooks/useSession';
 import { checkPermissionsAction } from '@/app/(features)/(dashbaord)/_services/permissions.action';
 
@@ -20,8 +20,9 @@ export function usePermissions() {
 
   /**
    * Vérifie si l'utilisateur a une permission spécifique
+   * Utilise useCallback pour éviter les re-créations de fonction
    */
-  const hasPermission = async (permission: string): Promise<boolean> => {
+  const hasPermission = useCallback(async (permission: string): Promise<boolean> => {
     if (!session) return false;
     
     try {
@@ -30,12 +31,13 @@ export function usePermissions() {
     } catch {
       return false;
     }
-  };
+  }, [session]);
 
   /**
    * Vérifie si l'utilisateur a au moins une des permissions
+   * Utilise useCallback pour éviter les re-créations de fonction
    */
-  const hasAnyPermission = async (permissions: string[]): Promise<boolean> => {
+  const hasAnyPermission = useCallback(async (permissions: string[]): Promise<boolean> => {
     if (!session || permissions.length === 0) return false;
     
     try {
@@ -44,12 +46,13 @@ export function usePermissions() {
     } catch {
       return false;
     }
-  };
+  }, [session]);
 
   /**
    * Vérifie si l'utilisateur a toutes les permissions
+   * Utilise useCallback pour éviter les re-créations de fonction
    */
-  const hasAllPermissions = async (permissions: string[]): Promise<boolean> => {
+  const hasAllPermissions = useCallback(async (permissions: string[]): Promise<boolean> => {
     if (!session || permissions.length === 0) return false;
     
     try {
@@ -58,7 +61,7 @@ export function usePermissions() {
     } catch {
       return false;
     }
-  };
+  }, [session]);
 
   return {
     permissions,

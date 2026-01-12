@@ -44,6 +44,9 @@ export function useTeamMembers(filters: TeamFilters = {}) {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false, // Ne pas refetch quand la fenêtre devient active
+    refetchOnMount: false, // Ne pas refetch à chaque mount si les données sont fraîches
+    refetchOnReconnect: true, // Refetch seulement à la reconnexion
   });
 }
 

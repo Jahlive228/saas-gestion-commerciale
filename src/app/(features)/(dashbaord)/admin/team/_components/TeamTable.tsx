@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Button from '@/components/ui/button/Button';
 import DataTable, { type Column } from '@/components/common/DataTable';
 import { useModal } from '@/hooks/useModal';
@@ -60,29 +60,29 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
   const pagination = membersResponse?.pagination;
   const totalPages = pagination?.total_pages || 1;
 
-  // Handler pour la recherche
-  const handleSearch = (term: string) => {
+  // Handler pour la recherche (mémorisé)
+  const handleSearch = useCallback((term: string) => {
     setSearchTerm(term);
     setCurrentPage(1);
-  };
+  }, []);
 
-  // Handler pour créer un nouveau membre
-  const handleCreateMember = () => {
+  // Handler pour créer un nouveau membre (mémorisé)
+  const handleCreateMember = useCallback(() => {
     setSelectedMember(null);
     openMemberModal();
-  };
+  }, [openMemberModal]);
 
-  // Handler pour modifier un membre
-  const handleEditMember = (member: TeamMember) => {
+  // Handler pour modifier un membre (mémorisé)
+  const handleEditMember = useCallback((member: TeamMember) => {
     setSelectedMember(member);
     openMemberModal();
-  };
+  }, [openMemberModal]);
 
-  // Handler pour supprimer un membre
-  const handleDeleteMember = (member: TeamMember) => {
+  // Handler pour supprimer un membre (mémorisé)
+  const handleDeleteMember = useCallback((member: TeamMember) => {
     setSelectedMember(member);
     openDeleteModal();
-  };
+  }, [openDeleteModal]);
 
   // Confirmer la suppression
   const confirmDeleteMember = async () => {
@@ -101,11 +101,11 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
     }
   };
 
-  // Handler pour activer/désactiver un membre
-  const handleToggleStatus = (member: TeamMember) => {
+  // Handler pour activer/désactiver un membre (mémorisé)
+  const handleToggleStatus = useCallback((member: TeamMember) => {
     setSelectedMember(member);
     openToggleStatusModal();
-  };
+  }, [openToggleStatusModal]);
 
   // Confirmer le changement de statut
   const confirmToggleStatus = async () => {
@@ -127,14 +127,17 @@ export default function TeamTable({ onRefresh }: TeamTableProps) {
     }
   };
 
-  // Colonnes de la table
-  const columns = getTeamColumns({
-    onEdit: handleEditMember,
-    onToggleStatus: handleToggleStatus,
-    onDelete: handleDeleteMember,
-    isToggling: toggleStatusMutation.isPending,
-    isDeleting: deleteMemberMutation.isPending,
-  });
+  // Colonnes de la table (mémorisées pour éviter les re-renders)
+  const columns = React.useMemo(
+    () => getTeamColumns({
+      onEdit: handleEditMember,
+      onToggleStatus: handleToggleStatus,
+      onDelete: handleDeleteMember,
+      isToggling: toggleStatusMutation.isPending,
+      isDeleting: deleteMemberMutation.isPending,
+    }),
+    [handleEditMember, handleToggleStatus, handleDeleteMember, toggleStatusMutation.isPending, deleteMemberMutation.isPending]
+  );
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">

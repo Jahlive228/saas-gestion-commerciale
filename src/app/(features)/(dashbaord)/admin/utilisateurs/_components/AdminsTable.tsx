@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Button from '@/components/ui/button/Button';
 import DataTable from '@/components/common/DataTable';
 import { useModal } from '@/hooks/useModal';
@@ -65,23 +65,23 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
     setCurrentPage(1); // Reset à la première page lors d'une recherche
   };
 
-  // Handler pour créer un nouvel admin
-  const handleCreateAdmin = () => {
+  // Handler pour créer un nouvel admin (mémorisé)
+  const handleCreateAdmin = useCallback(() => {
     setSelectedAdmin(null);
     openAdminModal();
-  };
+  }, [openAdminModal]);
 
-  // Handler pour modifier un admin
-  const handleEditAdmin = (admin: Admin) => {
+  // Handler pour modifier un admin (mémorisé)
+  const handleEditAdmin = useCallback((admin: Admin) => {
     setSelectedAdmin(admin);
     openAdminModal();
-  };
+  }, [openAdminModal]);
 
-  // Handler pour supprimer un admin
-  const handleDeleteAdmin = (admin: Admin) => {
+  // Handler pour supprimer un admin (mémorisé)
+  const handleDeleteAdmin = useCallback((admin: Admin) => {
     setSelectedAdmin(admin);
     openDeleteModal();
-  };
+  }, [openDeleteModal]);
 
   // Confirmer la suppression
   const confirmDeleteAdmin = async () => {
@@ -97,11 +97,11 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
     }
   };
 
-  // Toggle du statut actif/inactif
-  const handleToggleStatus = (admin: Admin) => {
+  // Toggle du statut actif/inactif (mémorisé)
+  const handleToggleStatus = useCallback((admin: Admin) => {
     setSelectedAdmin(admin);
     openToggleStatusModal();
-  };
+  }, [openToggleStatusModal]);
 
   // Confirmer le changement de statut
   const confirmToggleStatus = async () => {
@@ -121,14 +121,17 @@ export default function AdminsTable({ onRefresh }: AdminsTableProps) {
   };
 
 
-  // Configuration des colonnes
-  const columns = getAdminColumns({
-    onEdit: handleEditAdmin,
-    onToggleStatus: handleToggleStatus,
-    onDelete: handleDeleteAdmin,
-    isToggling: toggleStatusMutation.isPending,
-    isDeleting: deleteAdminMutation.isPending,
-  });
+  // Configuration des colonnes (mémorisées pour éviter les re-renders)
+  const columns = React.useMemo(
+    () => getAdminColumns({
+      onEdit: handleEditAdmin,
+      onToggleStatus: handleToggleStatus,
+      onDelete: handleDeleteAdmin,
+      isToggling: toggleStatusMutation.isPending,
+      isDeleting: deleteAdminMutation.isPending,
+    }),
+    [handleEditAdmin, handleToggleStatus, handleDeleteAdmin, toggleStatusMutation.isPending, deleteAdminMutation.isPending]
+  );
 
   return (
     <>
