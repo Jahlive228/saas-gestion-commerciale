@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser } from '@/server/auth/prisma-auth';
 import { TokenService } from '@/server/auth/token.service';
+import { withRateLimit } from '@/server/middleware/rate-limit';
 
 /**
  * POST /api/auth/login
  * Endpoint de connexion qui retourne un token Bearer
+ * Rate Limit: 5 requêtes par 15 secondes (protection contre force brute)
  */
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('[API /auth/login] ===== Début de la requête de connexion =====');
-  
-  try {
+  return withRateLimit(
+    request,
+    async (req: NextRequest) => {
+      const startTime = Date.now();
+      console.log('[API /auth/login] ===== Début de la requête de connexion =====');
+      
+      try {
     console.log('[API /auth/login] Parsing du body de la requête...');
-    const body = await request.json();
+    const body = await req.json();
     console.log('[API /auth/login] Body reçu:', { email: body.email, passwordLength: body.password?.length });
     
     const { email, password } = body;
@@ -111,5 +116,13 @@ export async function POST(request: NextRequest) {
       },
       { status: statusCode }
     );
-  }
+      }
+    },
+    {
+      limit: 5,
+      window: 15,
+      identifier: 'ip',
+      message: 'Trop de tentatives de connexion. Veuillez attendre 15 secondes avant de réessayer.',
+    }
+  );
 }

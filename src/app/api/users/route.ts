@@ -3,6 +3,7 @@ import { requireAuthAPI } from '@/server/auth/require-auth-api';
 import { requirePermissionAPI } from '@/server/permissions/require-permission-api';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { UsersService } from '@/server/services/users.service';
+import { withRateLimit } from '@/server/middleware/rate-limit';
 
 /**
  * GET /api/users
@@ -46,37 +47,43 @@ export async function GET(request: NextRequest) {
  * POST /api/users
  * Créer un nouvel utilisateur
  * Permission requise: users.create
+ * Rate Limit: 10 requêtes par minute
  */
 export async function POST(request: NextRequest) {
-  try {
-    const authUser = await requireAuthAPI(request);
-    await requirePermissionAPI(authUser, PERMISSION_CODES.USERS_CREATE);
+  return withRateLimit(
+    request,
+    async (req: NextRequest) => {
+      try {
+        const authUser = await requireAuthAPI(req);
+        await requirePermissionAPI(authUser, PERMISSION_CODES.USERS_CREATE);
 
-    const body = await request.json();
-    const result = await UsersService.createUser(authUser, body);
+        const body = await req.json();
+        const result = await UsersService.createUser(authUser, body);
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error,
-        },
-        { status: 400 }
-      );
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: result.error,
+            },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: result.user,
+        });
+      } catch (error: any) {
+        console.error('Erreur POST /api/users:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message || 'Erreur lors de la création de l\'utilisateur',
+          },
+          { status: 500 }
+        );
+      }
     }
-
-    return NextResponse.json({
-      success: true,
-      data: result.user,
-    });
-  } catch (error: any) {
-    console.error('Erreur POST /api/users:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Erreur lors de la création de l\'utilisateur',
-      },
-      { status: 500 }
-    );
-  }
+  );
 }

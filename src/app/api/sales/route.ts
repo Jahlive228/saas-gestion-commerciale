@@ -3,6 +3,7 @@ import { requireAuthAPI } from '@/server/auth/require-auth-api';
 import { requirePermissionAPI } from '@/server/permissions/require-permission-api';
 import { PERMISSION_CODES } from '@/constants/permissions-saas';
 import { SalesService } from '@/server/services/sales.service';
+import { withRateLimit } from '@/server/middleware/rate-limit';
 
 /**
  * GET /api/sales
@@ -48,40 +49,46 @@ export async function GET(request: NextRequest) {
  * POST /api/sales
  * Créer une nouvelle vente (POS)
  * Permission requise: sales.create
+ * Rate Limit: 30 requêtes par minute (par utilisateur)
  */
 export async function POST(request: NextRequest) {
-  try {
-    const authUser = await requireAuthAPI(request);
-    await requirePermissionAPI(authUser, PERMISSION_CODES.SALES_CREATE);
+  return withRateLimit(
+    request,
+    async (req: NextRequest) => {
+      try {
+        const authUser = await requireAuthAPI(req);
+        await requirePermissionAPI(authUser, PERMISSION_CODES.SALES_CREATE);
 
-    const body = await request.json();
-    const result = await SalesService.createSale(authUser, body);
+        const body = await req.json();
+        const result = await SalesService.createSale(authUser, body);
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error,
-        },
-        { status: 400 }
-      );
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: result.error,
+            },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            saleId: result.saleId,
+            reference: result.reference,
+          },
+        });
+      } catch (error: any) {
+        console.error('Erreur POST /api/sales:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message || 'Erreur lors de la création de la vente',
+          },
+          { status: 500 }
+        );
+      }
     }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        saleId: result.saleId,
-        reference: result.reference,
-      },
-    });
-  } catch (error: any) {
-    console.error('Erreur POST /api/sales:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Erreur lors de la création de la vente',
-      },
-      { status: 500 }
-    );
-  }
+  );
 }

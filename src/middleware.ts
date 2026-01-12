@@ -41,10 +41,30 @@ const privateRoutePrefixes = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignorer les assets statiques et les routes API
-  if (pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.includes('.')) {
+  // Appliquer le rate limiting général aux routes API
+  // Les routes spécifiques peuvent avoir des limites plus strictes via withRateLimit
+  if (pathname.startsWith('/api')) {
+    try {
+      const { rateLimit } = await import('@/server/middleware/rate-limit');
+      const rateLimitResult = await rateLimit()(request);
+      
+      // Si le rate limit retourne une réponse (429), la retourner
+      if (rateLimitResult && rateLimitResult.status === 429) {
+        return rateLimitResult;
+      }
+      
+      // Sinon, continuer avec le traitement normal
+      // Les routes individuelles appliqueront leurs propres limites si nécessaire
+      return NextResponse.next();
+    } catch (error) {
+      // En cas d'erreur, continuer sans rate limiting
+      console.error('[Middleware] Erreur rate limiting:', error);
+      return NextResponse.next();
+    }
+  }
+
+  // Ignorer les assets statiques
+  if (pathname.startsWith('/_next') || pathname.includes('.')) {
     return NextResponse.next();
   }
 

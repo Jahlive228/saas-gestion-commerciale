@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/server/auth/require-auth';
 import { requireSuperAdmin } from '@/server/auth/require-auth';
 import { TenantsService } from '@/server/services/tenants.service';
+import { withRateLimit } from '@/server/middleware/rate-limit';
 
 /**
  * GET /api/tenants
@@ -42,36 +43,42 @@ export async function GET(request: NextRequest) {
  * POST /api/tenants
  * Créer un nouveau tenant
  * Permission requise: SUPERADMIN uniquement
+ * Rate Limit: 5 requêtes par minute (limite stricte)
  */
 export async function POST(request: NextRequest) {
-  try {
-    await requireSuperAdmin();
+  return withRateLimit(
+    request,
+    async (req: NextRequest) => {
+      try {
+        await requireSuperAdmin();
 
-    const body = await request.json();
-    const result = await TenantsService.createTenant(body);
+        const body = await req.json();
+        const result = await TenantsService.createTenant(body);
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error,
-        },
-        { status: 400 }
-      );
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: result.error,
+            },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: result.tenant,
+        });
+      } catch (error: any) {
+        console.error('Erreur POST /api/tenants:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message || 'Erreur lors de la création du tenant',
+          },
+          { status: 500 }
+        );
+      }
     }
-
-    return NextResponse.json({
-      success: true,
-      data: result.tenant,
-    });
-  } catch (error: any) {
-    console.error('Erreur POST /api/tenants:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Erreur lors de la création du tenant',
-      },
-      { status: 500 }
-    );
-  }
+  );
 }
