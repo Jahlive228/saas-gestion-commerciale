@@ -148,6 +148,10 @@ export default function ProductModal({
     }
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
       <div className="relative w-full bg-white rounded-xl shadow-xl">
